@@ -1,22 +1,30 @@
 # Installation
 
 ## Dependencies
-COLLAGENE runs on Linux systems. It requires working installations of *openssl* and *gcc*.
+COLLAGENE runs on Linux systems. It requires working installations of *openssl* and *gcc* (version 9+).
 
-Extensions require *git*, *curl*, and you may need *svn*.
+Extensions require *git* and *curl*, which are available in most Linux installations.
 
 In addition, the AWS S3 file transfers requires a configured installation of AWS command line interface: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
 ## Steps to build COLLAGENE
 
-### Install SEAL
-COLLAGENE was initially developed with SEAL version 4.0.
+### Source Code
+You can clone COLLAGENE source code via git:
+```
+git clone https://github.com/harmancilab/COLLAGENE.git
+```
+After cloning, navigate into COLLAGENE directory:
+```
+cd COLLAGENE
+```
 
-Install SEAL (https://github.com/microsoft/SEAL/) that is located under *src/SEAL-main*. 
+### Install SEAL
+It is first necessary to install SEAL that is located under *src/SEAL-main*. Note that COLLAGENE was initially developed with SEAL version 4.0.
 
 Depending on the system, it may be necessary to install gcc-9 or above to ensure SEAL installation works with optimizations. If you install gcc manually, make sure to set the shared library paths correctly (LD_LIBRARY_PATH, and LIBRARY_PATH variables).
 
-At this stage you will need cmake. SEAL4.0 requires cmake with version greater than 3. If you don't have it installed on your system, you can download it using following:
+SEAL4.0 requires cmake with version greater than 3. If you don't have it installed on your system, you can download it using following:
 ```
 cd src/SEAL-main
 wget -c https://github.com/Kitware/CMake/releases/download/v3.23.1/cmake-3.23.1-linux-x86_64.sh
@@ -25,7 +33,7 @@ chmod 755 cmake-3.23.1-linux-x86_64.sh
 ```
 Last command installs cmake in the local directory after confirming the license.
 
-After gcc and cmake are installed, use following commands to setup cmake directories:
+After cmake is installed, use following commands to setup cmake directories:
 ```
 mkdir build
 mkdir install
@@ -47,12 +55,14 @@ export CC=gcc10-cc
 ./cmake-3.23.1-linux-x86_64/bin/cmake -S . -B build -DSEAL_USE_CXX17=ON -DSEAL_BUILD_DEPS=ON -DSEAL_USE_MSGSL=ON -DSEAL_USE_ZSTD=ON -DSEAL_USE_ZLIB=OFF -DCMAKE_INSTALL_PREFIX=install -DSEAL_USE_INTEL_HEXL=ON
 ```
 
-Finally, you can build SEAL:
+Finally, you can build and install SEAL:
 ```
 ./cmake-3.23.1-linux-x86_64/bin/cmake --build build
 ./cmake-3.23.1-linux-x86_64/bin/cmake --install build
+```
 
-# cmake3.13 has a different syntax for installation:
+cmake3.13 has a different syntax for installation (Second command)
+```
 cmake3 --build build --target install
 ```
 
