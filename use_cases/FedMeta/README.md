@@ -7,7 +7,8 @@ wget -O data.tar.bz2 -c https://zenodo.org/record/8106630/files/CLLGN_DATA_DIR_0
 tar -xvjf data.tar.bz2 
 cd CLLGN_DATA_DIR_07_02_23_20_00_40/Meta/PER_CLIENT_LOCAL_DIRS
 ```
-Within the data directory, there are FedGWAS and FedMeta directories. 
+
+2) Within the data directory, there are FedGWAS and FedMeta directories. 
 
 In both of these, there are 3 directories corresponding to the 3 sites. Under, for example, *SITE_1/*, there are 3 more directories:
 
