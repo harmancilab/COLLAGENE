@@ -21,28 +21,28 @@ COLLAGENE provides the tools to encrypt and collectively decrypt data matrices (
 Usage examples of these tools are included under *examples/* directory.
 
 ### 2) Networking and File I/O:
-COLLAGENE's current approach is based on exchanging data among sites using file transfers. The networking and file I/O simplifies online computation requirements where sites can perform local computations. We provide a template script that provides the basic functionalities for performing network file I/O using SCP protocol. 
+COLLAGENE's current approach is based on exchanging data among sites using file transfers. The networking and file I/O simplifies online computation requirements where sites can perform local computations. We provide a template script that provides the basic functionalities for performing network file I/O using SCP protocol or via AWS buckets. 
 
 ### 3) Matrix Processing Library:
 COLLAGENE provides a suite of plaintext and encrypted matrix processing tools that can be used to perform matrix operations such as matrix arithmetic.
 
-As most of the algorithms in bioinformatics rely on extensive matrix operations, the matrix library establishes a basic set of tools that can be used for processing small-to-medium sizes matrices.
+As majority of the methods in bioinformatics rely on extensive matrix operations, the matrix library establishes a basic set of tools that can be used for processing small-to-medium sizes matrices.
 
 ## Usage Examples for Different Components
-We provide examples of using key-setup, encryption/decryption, matrix library, network file I/O, and non-linear function approximations under *examples/* directory. These examples demonstrate the basic building blocks for building complex collaborative analysis pipelines.
+We provide examples of using key-setup, encryption/decryption, matrix library, network file I/O (and others) under *examples/* directory. These examples demonstrate the basic blocks for building more complex collaborative analysis pipelines.
 
 ## Use Cases:
-We provide a full implementation of a federated GWAS for binary traits under *use_cases/* directory. The implementation includes all components that can be readily deployed. This implementation is also included in the docker image for reference.
+We provide a full implementation of federated GWAS and meta-analysis for binary traits under *use_cases/* directory. The implementation includes all components that can be readily deployed. A public docker image is provided to install and test these implementations (See *installation/* and *docker/* for more details.).
 
 ## API and CLI Documentation
-Documentation for the options that can be used secure pipelines can be found under *API/* directory.
+Documentation for the options that can be used in secure pipelines can be found under *API/* directory.
 
 ## How do I build new collaborative analysis pipelines with COLLAGENE?
-Any pipeline that will be implemented in a collaborative setting must be first converted into a pipeline that can be implemented with the tools that are provided COLLAGENE. 
+As with any new tool development, Any pipeline that will be implemented in a collaborative/federated setting must be first formulated so that it can be implemented with COLLAGENE's existing modules.
 
-The matrix library provides the basic building blocks of matrix operations. Non-linear functions (e.g., sigmoid) must be approximated using, for example, Taylor expansions in the appropriate range of values.
+Thus it is necessary for developers to convert their implementations into blocks of modules that can be implemented using COLLAGENE's tools. However, most of the security concerns can be thwarted using the implementations in COLLAGENE. 
 
-Thus it is still necessary for developers to convert their implementations into blocks of modules that can be implemented using COLLAGENE's tools. For example, the matrix operations should be performed such that only aggregated intermediate encrypted results are shared among sites.
+It is, however, important to not share any individual level data (even when they are encrypted), use masking of aggregated datasets when they are decrypted as intermediate datasets.
 
 We are currently working on providing further recommendations for secure pipeline development for different types of analyses.
 
