@@ -69,6 +69,10 @@ then
 	exit 1
 fi
 
+# Make all scripts executable.
+#dos2unix *.sh
+chmod 755 *.sh
+
 # After setting up the option to share files among sites, each site should run the test option that uploads a random matrix, probes it, and downloads it:
 echo "TESTING FILE TRANSFER AND PROBING"
 ./FILE_IO_UTILITIES.sh -test_file_IO data_config.params

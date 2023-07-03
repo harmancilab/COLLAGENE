@@ -10,6 +10,10 @@ then
 	exit 1
 fi
 
+# Make all scripts executable.
+#dos2unix *.sh
+chmod 755 *.sh
+
 # This is the data scaling exercise of COLLAGENE. The basic idea is to demonstrate that when the data range is large across two matrices, scaling can help 
 # alleviate error accumulation in multiplication of padded matrices.
 

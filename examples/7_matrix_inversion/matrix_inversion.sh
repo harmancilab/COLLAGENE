@@ -10,6 +10,10 @@ then
 	exit 1
 fi
 
+# Make all scripts executable.
+#dos2unix *.sh
+chmod 755 *.sh
+
 N_SITES=3
 
 rm -f *.list

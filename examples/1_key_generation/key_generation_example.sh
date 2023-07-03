@@ -12,6 +12,17 @@ fi
 N_SITES=3
 cmd_option=$1
 
+# Key generation relies only on COLLAGENE script.
+if [[ ! -f "./COLLAGENE.sh" ]]
+then
+	echo "Could not find COLLAGENE script, copy it from source code scripts/ directory."
+	exit 1
+fi
+
+# Make all scripts executable.
+#dos2unix *.sh
+chmod 755 *.sh
+
 # Site indexintg is always done with 0-based indices. This is important only for downloading data from other sites but protocol decides on the file names
 # We use 0-based indexing here for naming the local site key folders, which is not necessary. Local sites can setup their keys in any folder. 
 # It is, however, necessary to assign a 0-based index to all sites while protocols are executed.

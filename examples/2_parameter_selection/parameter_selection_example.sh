@@ -10,6 +10,10 @@ then
 	exit 1
 fi
 
+# Make all scripts executable.
+#dos2unix *.sh
+chmod 755 *.sh
+
 # Check the validity of the original parameters:
 ./COLLAGENE.sh -validate_ckks_text_params SITE_0 is_valid.txt
 
