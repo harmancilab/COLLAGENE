@@ -1,0 +1,79 @@
+#
+# This file is the configuration parameters that are used with GWAS and Meta-analysis scripts.
+# First set of parameters describe GWAS and Meta-analysis specific parameters. The set of parameters define the file I/O options about file sharing system, etc.
+# 
+
+# This is the local site's 0-based index.
+LOCAL_SITE_I=0
+
+# of sites.
+N_SITES=3
+
+# Local data directory for this site.
+LOCAL_DATA_DIR="LOCAL_DATA_DIR"
+
+# The number of variants in the original dataset, the number to score, and the block size.
+N_VARS_2_USE=60000
+N_VARS_2_SCORE=${N_VARS_2_USE}
+
+# Keep this at 8192 to make most efficient of ciphertexts in p-value assignment.
+VAR_BLOCK_SIZE=8192
+
+# Algorithm parameters, you don't need to change these.
+N_EPOCHS=4
+LL_EPSILON=0.00001
+Z_SCALER=1000
+
+# The parameter and key files for this site. These are the key names that get setup by COLLAGENE.
+SITE_KEYS_DIR=SITE_KEYS
+PUBLIC_KEY_FILE=${SITE_KEYS_DIR}/pooled.public_key
+RELIN_KEY_FILE=${SITE_KEYS_DIR}/pooled.relin_keys
+GALOIS_KEY_FILE=${SITE_KEYS_DIR}/pooled.galois_keys
+PRIVATE_KEY_FILE=${SITE_KEYS_DIR}/local_site.secret_key
+PARTDEC_SYMKEY_FILE=${SITE_KEYS_DIR}/partdec_data_enc_hash.symmetric_key
+TEXT_PARAMS_PATH=ckks.params
+
+# Executables: Make sure these are correctly set, they are used by the GWAS and meta analysis utilities and I/O utilities.
+COLLAGENE_SECURE_EXEC=COLLAGENE_Release
+FILE_IO_UTILS_SCRIPT=./FILE_IO_UTILITIES.sh
+SECURE_FEDGWAS_UTILITIES=./SECURE_FEDGWAS_UTILITIES.sh
+
+############################################################################################################################################
+# Below sets up the options to upload/download/list the contents of the shared directory that is used to pass files among clients.
+# This is the directory where the manifests are downloaded. It would be better to make sure this is separated from other modules.
+
+# this is the directory where all statistics and manifests are downloaded, don't have to change.
+FILE_IO_TEMP_DIR="TEMP_FILE_IO"
+
+## Setup the accession keys on a remote server:
+# mkdir FEDERATION_KEYS
+# ssh-keygen -t rsa -f FEDERATION_KEYS/federation -P ""
+# ssh-copy-id -i FEDERATION_KEYS/federation ${username}@${hostname}
+# May ask for a login once to authenticate. After that, you can use the private key to ssh and scp.
+
+## SCP Example:
+#IO_TYPE=SCP
+## Following enables key-based access to scp. It is only necessary to specify SCP_FEDERATION_SECRET_KEY option below.
+## This is the secret ssh key. 
+#SCP_FEDERATION_SECRET_KEY="FEDERATION_KEYS/federation"
+#SCP_PREAMBLE="scp -o PasswordAuthentication=no -r -i ${SCP_FEDERATION_SECRET_KEY}"
+#SSH_PREAMBLE="ssh -o PasswordAuthentication=no -i ${SCP_FEDERATION_SECRET_KEY}"
+#SCP_HOST="john.doe@127.0.0.1"
+#SCP_REMOTE_SHARED_DIR="/SHARED_WORKING_DIRECTORY"
+
+#############################################################################################
+## S3 Example:
+# Use "aws configure" option to setup your AWS account credentials before using this option.
+# After setting credentials, set the bucket name, and the shared directory name below.
+#IO_TYPE=S3
+#AWS_CLI_PATH=/usr/binaries/aws
+#SHARED_DATA_BUCKET=s3://secureomics
+#S3_REMOTE_SHARED_DIR_KEY=${SHARED_DATA_BUCKET}/SHARED_FEDGWAS_DATA_MODEL_DIR
+
+#############################################################################################
+# Local Example, this is simply a local directory in the shared file system, useful for debugging and tests.
+IO_TYPE=LOCAL
+LOCAL_REMOTE_SHARED_DIR=/data/SHARED_DATA_MODEL_DIR
+
+############################################################################################################################################
+

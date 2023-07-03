@@ -1,0 +1,48 @@
+############################################################################################################################################
+
+# This is the generic data_config.params file that makes it easier to fix parameters. It contains different options in different applications.
+# You can use this file to setup task-specific parameters and share it with other sites to be consistent.
+
+# This command sets the executable binary path for COLLAGENE under bin/ directory. If it is in your PATH variable, it should be all set. 
+# Otherwise, you need to set the path to the executable file here.
+COLLAGENE_SECURE_EXEC=COLLAGENE_Release
+
+############################################################################################################################################
+# Below sets up the options to upload/download/list the contents of the shared directory that is used to pass files among clients.
+# This is the directory where the manifests are downloaded. It would be better to make sure this is separated from other modules.
+
+# this is the directory where all statistics and manifests are downloaded, don't have to change.
+FILE_IO_TEMP_DIR="TEMP_FILE_IO"
+
+## Setup the accession keys on a remote server:
+# mkdir FEDERATION_KEYS
+# ssh-keygen -t rsa -f FEDERATION_KEYS/federation -P ""
+# ssh-copy-id -i FEDERATION_KEYS/federation ${username}@${hostname}
+# May ask for a login once to authenticate. After that, you can use the private key to ssh and scp.
+
+# SCP Example:
+IO_TYPE=SCP
+# Following enables key-based access to scp. It is only necessary to specify SCP_FEDERATION_SECRET_KEY option below.
+# This is the secret ssh key. 
+SCP_FEDERATION_SECRET_KEY="FEDERATION_KEYS/federation"
+SCP_PREAMBLE="scp -o PasswordAuthentication=no -r -i ${SCP_FEDERATION_SECRET_KEY}"
+SSH_PREAMBLE="ssh -o PasswordAuthentication=no -i ${SCP_FEDERATION_SECRET_KEY}"
+SCP_HOST="john.doe@127.0.0.1"
+SCP_REMOTE_SHARED_DIR="/SHARED_WORKING_DIRECTORY"
+
+#############################################################################################
+## S3 Example:
+# Use "aws configure" option to setup your AWS account credentials before using this option.
+# After setting credentials, set the bucket name, and the shared directory name below.
+#IO_TYPE=S3
+#AWS_CLI_PATH=/usr/binaries/aws
+#SHARED_DATA_BUCKET=s3://secureomics
+#S3_REMOTE_SHARED_DIR_KEY=${SHARED_DATA_BUCKET}/SHARED_FEDGWAS_DATA_MODEL_DIR
+
+#############################################################################################
+## Local Example, this is simply a local directory in the shared file system, useful for debugging and tests.
+#IO_TYPE=LOCAL
+#LOCAL_REMOTE_SHARED_DIR=/data/SHARED_DATA_MODEL_DIR
+
+############################################################################################################################################
+
