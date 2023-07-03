@@ -254,7 +254,7 @@ plink2_pvals_fp=$plink2_pvals_fp"
 		# Calculate p-values.
 		chmod 755 GET_CHISQ_PVAL.R
 		cut -f4,5 ${SHARED_DIR}/full_dec_pval_matrix_iter_${N_EPOCHS}_client_0.bin > plain_FedLR_ST.txt
-		./GET_CHISQ_PVAL.R plain_FedLR_ST.txt plain_FedLR_p_vals.txt
+		Rscript GET_CHISQ_PVAL.R plain_FedLR_ST.txt plain_FedLR_p_vals.txt
 		cut -f1,1 ${SHARED_DIR}/full_dec_pval_matrix_iter_${N_EPOCHS}_client_0.bin > snp_ids.txt
 		paste snp_ids.txt plain_FedLR_p_vals.txt > plain_FedLR_p_vals_w_var_ids.txt
 fi

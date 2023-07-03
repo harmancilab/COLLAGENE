@@ -33,7 +33,7 @@ Note that the pipeline uses a lot of intermediate files and file naming may get 
 
 If you want to create your own keys, you can refer to the key generation example under *examples/* folder of the source code, which explains step by step how to generate the keys. After you run this example, you just need to copy each set of keys to each site under *SITE_1/SITE_KEYS*, *SITE_2/SITE_KEYS*, *SITE_3/SITE_KEYS*.
 
-4) data_config.params must be setup to enable data accession (setup "LOCAL_DATA_DIR", keys, etc) and file I/O. Make sure to set the file executable paths in this configuration file since they are used by the meta-analysis utilities and I/O utilities.
+4) Review the setting in data_config.params. Make sure to set COLLAGENE executable path in this configuration file unless it is included in *PATH*.
 
 5) IO_TYPE should be set in *data_config.params* file and tested using FILE_IO_UTILITIES.sh script. You can use *FILE_IO_UTILS.sh* for this:
 
@@ -41,12 +41,12 @@ If you want to create your own keys, you can refer to the key generation example
 ./FILE_IO_UTILITIES.sh -test_file_IO data_config.params
 ```
 
-Note that by default, I/O type is set to a local directory, i.e., you can see the lines in *data_confi.params* file:
+Note that by default, I/O type is set to a local directory, i.e., you can see the lines in *data_config.params* file:
 ```
 IO_TYPE=LOCAL
 LOCAL_REMOTE_SHARED_DIR=/internal/aharmanci1/dir/SHARED_DATA_MODEL_DIR
 ```
-while other options are commented out. To use AWS or SCP options, uncomment them after configuring AWS or SSH keys and comment out other options.
+Other options are commented out. To use AWS or SCP options, uncomment them after configuring AWS or SSH keys.
 
 6) Validate the input files:
 ```
@@ -57,14 +57,14 @@ Note that the pipeline does this check but one can explicitly validate data and 
 
 If there are no errors, this script should return without any messages.
 
-7) Clean the shared working directory under the storage server before running any commands. Previous files do not get overwritten by COLLAGENE_Secure.
+7) Clean the shared working directory under the storage server before running any commands.
 
 You can use following option for this:
 ```
 ./FILE_IO_UTILITIES.sh -clean_shared_directory data_config.params
 ```
 
-10) You can now start the computations in the background using:
+8) You can now start the computations in the background using:
 ```
 nohup ./RUN_CLIENT_METAANALYSIS_COMMANDS.sh &
 ```
@@ -81,16 +81,16 @@ cd ../SITE_3
 nohup ./RUN_CLIENT_METAANALYSIS_COMMANDS.sh &
 ```
 
-These options should have started 3 processes that run each client's commands. If you do not run one of the sites, other sites will block at the last step of calculations waiting for the other site.
+These should have started 3 processes that run each client's commands. If you do not run or stop one of the sites, other sites will block at the current step of calculations.
 
-11) To check progress, you can look for the time report that is used by each step in the time log file. Also, the output log should be written in each output file. These files are useful for troubleshooting errors.
+9) To check progress, you can look for the time report that is used by each step in the time log file. Also, the output log should be written in each output file. These files are useful for troubleshooting errors.
 
-12) If you need to stop all of the running protocol executables and scripts, you use following:
+10) If you need to stop all of the running protocol executables and scripts, you use following:
 ```
 ./SECURE_FEDMETA_CLIENT.sh -stop_FedGWAS_processes
 ```
 This option searches for COLLAGENE processes and tries to stop them. After this command ends, you should ensure all processes ended before starting the protocol again.
 
-13) Final results are written to a tab-delimited file in each site's working directory, e.g., *FINAL_META_P_VALUES_CLIENT_0_PER_R_w_var_ids.txt*
+11) Final results are written to a tab-delimited file in each site's working directory, e.g., *FINAL_META_P_VALUES_CLIENT_0_PER_R_w_var_ids.txt*
 
 
