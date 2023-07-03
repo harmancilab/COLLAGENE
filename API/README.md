@@ -66,7 +66,7 @@ This option copies the received keys and the text parameters to a local director
 ***
 
 ##### >> COLLAGENE.sh -validate_ckks_text_params [Parameter directory] [Validity output file]
-This option checks the validity of parameters.
+This option checks the validity of parameters under 128-bit security.
 
 *__Inputs:__*
 
@@ -78,7 +78,7 @@ This option checks the validity of parameters.
 
 *__Outputs:__* Validity output file is written.
 
-*__Remarks:__* This option checks for the validity of the parameter settings in ckks file.
+*__Remarks:__* This option checks for the validity of the parameter settings in ckks file under 128-bit security as defined by homomorphicencryption.org's white paper.
 
 ***
 
