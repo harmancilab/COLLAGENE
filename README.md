@@ -16,11 +16,7 @@ COLLAGENE provides number of components that can be used for building collaborat
 ### 1) Key Generation, encryption, collective decryption, ciphertext vitals, and masking of encrypted data:
 KeyMaker is a cloud-based service that is used for generating and sharing secret keys among collaborating sites. It can be accessed [here](https://www.secureomics.org/KeyMaker). This step simplifies key-generation step. As KeyMaker is central for generation of the keys, sites must trust the KeyMaker service. It should be noted that KeyMaker does not take part in data processing steps and the keys can be used in local settings without any more interaction with KeyMaker after they are generated.
 
-COLLAGENE provides the tools to encrypt and collectively decrypt data matrices (e.g., genotypes, phenotypes, covariates, expression levels). 
-
-COLLAGENE also provides the tools to keep track of the ciphertext's vital status that are important to ensure that they can be operated on.
-
-COLLAGENE also has functions to ensure that parameters selected for encryption satify certain security requirements (e.g., 128-bit vs 192-bit security).
+COLLAGENE provides the tools to encrypt and collectively decrypt data matrices (e.g., genotypes, phenotypes, covariates), modules to keep track of the ciphertext information and security level (128-bits) that are important to ensure that they can be operated on.
 
 Usage examples of these tools are included under *examples/* directory.
 
