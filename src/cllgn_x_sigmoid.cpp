@@ -20,7 +20,20 @@ double get_log_val_protected(double param)
 	}
 	else
 	{
-		fprintf(stderr, "Encountered negatives for log, returning 0!\n");
+		fprintf(stderr, "Sanity check error: log callback: Encountered 0, returning 0\n");
+		return(0);
+	}
+}
+
+double inv_protected(double param)
+{
+	if (param != 0)
+	{
+		return(1.0 / param);
+	}
+	else
+	{
+		fprintf(stderr, "Sanity check error: Inv callback: Encountered 0, returning 0\n");
 		return(0);
 	}
 }

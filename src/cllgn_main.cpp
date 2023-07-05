@@ -72,6 +72,7 @@ Matrix Library Options:\n\
 	-plain_invert_matrix\n\
 	-plain_add_matrices\n\
 	-plain_add_matrices_per_list\n\
+	-plain_sub_matrices\n\
 	-generate_random_pt_matrix\n\
 	-generate_constant_full_matrix\n\
 	-generate_constant_diagonal_matrix\n\
@@ -121,7 +122,7 @@ DSK Options:\n\
 		{
 			if (argc != 5)
 			{
-				fprintf(stderr, "USAGE: %s %s [Matrix file] [Function (log/exp/sigmoid)] [Output matrix file]\n", argv[0], argv[1]);
+				fprintf(stderr, "USAGE: %s %s [Matrix file] [Function (log/exp/sigmoid/inv)] [Output matrix file]\n", argv[0], argv[1]);
 				exit(0);
 			}
 
@@ -145,6 +146,15 @@ DSK Options:\n\
 			else if (t_string::compare_strings(callback_name, "log"))
 			{
 				res_matrix = process_matrix_elementwise_by_callback(input_matrix, nrows, ncols, get_log_val_protected, NULL);
+			}
+			else if (t_string::compare_strings(callback_name, "inv"))
+			{
+				res_matrix = process_matrix_elementwise_by_callback(input_matrix, nrows, ncols, inv_protected, NULL);
+			}
+			else
+			{
+				fprintf(stderr, "Sanity check error: Unknown callback \"%s\"\n", callback_name);
+				exit(1);
 			}
 			
 			if (res_matrix != NULL)
@@ -902,6 +912,28 @@ DSK Options:\n\
 
 			save_matrix_binary(sum_mat, loaded_nArow, loaded_nAcol, op_fp);
 		} // -add_matrices_per_list option.
+		else if (t_string::compare_strings(argv[1], "-plain_sub_matrices"))
+		{
+			if (argc != 5)
+			{
+				fprintf(stderr, "%s %s [Matrix path list] [Output file path]\n", argv[0], argv[1]);
+				exit(0);
+			}
+
+			char* A_mat_fp = argv[2];
+			char* B_mat_fp = argv[3];
+			char* op_fp = argv[4];
+
+			int loaded_nArow, loaded_nAcol;
+			int loaded_nBrow, loaded_nBcol;
+
+			double** A_mat = load_matrix_binary(A_mat_fp, loaded_nArow, loaded_nAcol, NULL);
+			double** B_mat = load_matrix_binary(B_mat_fp, loaded_nBrow, loaded_nBcol, NULL);
+
+			double** sub_mat = matrix_subtract(A_mat, loaded_nArow, loaded_nAcol, B_mat, loaded_nBrow, loaded_nBcol, NULL);
+
+			save_matrix_binary(sub_mat, loaded_nArow, loaded_nAcol, op_fp);
+		} // -plain_sub_matrices option.
 		else if (t_string::compare_strings(argv[1], "-plain_add_matrices_per_list"))
 		{
 			if (argc != 4)
@@ -932,7 +964,8 @@ DSK Options:\n\
 			char* pooled_private_key_path = argv[7];
 			char* op_fp = argv[8];
 
-			secure_add_continuous_encrypted_matrices_per_list(enc_mat_list_fp,
+			//secure_add_continuous_encrypted_matrices_per_list(enc_mat_list_fp,
+			secure_add_continuous_encrypted_matrices_in_memory_per_list(enc_mat_list_fp,
 				text_params_path,
 				pooled_public_key_path,
 				pooled_relin_key_path,

@@ -247,8 +247,6 @@ void write_vital_stats_per_continuous_encrypted_matrix(char* enc_mat_fp,
 
 	// We need the encoder to get the number of samples per ct.
 	CKKSEncoder encoder(context);
-	//int n_samples_per_ct = encoder.slot_count();
-
 	int n_values_per_ct = encoder.slot_count();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -820,9 +818,8 @@ void fully_decrypt_continuous_encrypted_matrix(char* enc_matrix_fp, char* text_p
 	save_matrix_binary(dec_matrix, loaded_nrows, loaded_ncols, bin_matrix_fp);
 } // fully_decrypt_continuous_encrypted_matrix function.
 
-// THIS SEEMS TO BE WORKING BUT WE ARE WASTING A LOT OF CT SPACE aND HAVE AN EXTRA MASKING STEP THAT WASTES modulus.
-// CAN WE COME UP WITH A RECODING AND DO 1 MULT AND A LOT OF SUMMATIONS?
-// Use the algorithm in https://eprint.iacr.org/2018/1041.pdf
+
+// We use the algorithm in https://eprint.iacr.org/2018/1041.pdf
 // This function multiplies the matrices AxB -- Note that B is given as Bt here.
 // The problem with this approach is that each inner product provides one entry and we need to do a lot of shifts to move them into the result matrix.
 // Therefore this function will not be efficient for large matrices.
@@ -1875,6 +1872,190 @@ vector<Ciphertext>* load_continuous_enc_matrix(char* enc_matrix_fp, int& loaded_
 	return(matrix_cts);
 }
 
+
+void secure_add_continuous_encrypted_matrices_in_memory_per_list(char* enc_mat_list_fp,
+	char* text_params_path,
+	char* pooled_public_key_path,
+	char* pooled_relin_key_path,
+	char* pooled_galois_key_path,
+	char* pooled_private_key_path, // To be removed.
+	char* op_fp)
+{
+	// Load the per site matrices, compute the 4th power of each matrix element, save the results.
+	// Setup context.
+	if (!check_file(text_params_path))
+	{
+		fprintf(stderr, "Could not find the text parameters @ %s\n", text_params_path);
+		exit(1);
+	}
+
+	t_text_params* text_params = load_text_params(text_params_path);
+
+	vector<int> coeff_modulus_bit_sizes;
+	for (int i_dec = 0; i_dec < (int)(text_params->decomp_bit_sizes_ptr->size()); i_dec++)
+	{
+		coeff_modulus_bit_sizes.push_back(text_params->decomp_bit_sizes_ptr->at(i_dec));
+	} // i_dec loop.
+
+	EncryptionParameters parms(scheme_type::ckks);
+
+	size_t poly_modulus_degree = text_params->poly_modulus_degree;
+	parms.set_poly_modulus_degree(poly_modulus_degree);
+	parms.set_coeff_modulus(CoeffModulus::Create(
+		poly_modulus_degree, coeff_modulus_bit_sizes));
+
+	//double scale = pow(2, text_params->scale_n_bits);
+
+	if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	{
+		fprintf(stderr, "Max coefficient modulus bit count: %d\n", CoeffModulus::MaxBitCount(poly_modulus_degree));
+	}
+
+	SEALContext context(parms);
+
+	if (!check_file(pooled_public_key_path) ||
+		!check_file(pooled_relin_key_path) ||
+		!check_file(pooled_galois_key_path))
+	{
+		fprintf(stderr, "Could not find one of the keys @ %s, %s, %s\n", pooled_public_key_path, pooled_relin_key_path, pooled_galois_key_path);
+		exit(0);
+	}
+
+	//// Instantiate and load the public key.
+	//fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
+	//ifstream ifs_pk(pooled_public_key_path, ios::binary);
+	//PublicKey pooled_pk;
+	//pooled_pk.load(context, ifs_pk);
+	//ifs_pk.close();
+	//fprintf(stderr, "Loaded public key.\n");
+
+	// Load relin key.
+	fprintf(stderr, "Loading relinearization key from %s.\n", pooled_relin_key_path);
+	ifstream ifs_relin_key(pooled_relin_key_path, ios::binary);
+	RelinKeys pooled_relin_key;
+	pooled_relin_key.load(context, ifs_relin_key);
+	ifs_relin_key.close();
+	fprintf(stderr, "Loaded relinearization key.\n");
+
+	// We do not need the galois key here.
+	//// Load galois key.
+	//fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
+	//ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
+	//GaloisKeys pooled_galois_key;
+	//pooled_galois_key.load(context, ifs_galois_key);
+	//ifs_galois_key.close();
+	//fprintf(stderr, "Loaded Galois key.\n");
+
+#ifdef __DECRYPT_DEBUG__
+	if (!check_file(pooled_private_key_path))
+	{
+		fprintf(stderr, "Could not find private key file path @ %s\n", pooled_private_key_path);
+		exit(0);
+	}
+
+	// Load secret key -- this should be the actual pooled key.
+	fprintf(stderr, "Loading pooled secret key from %s.\n", pooled_private_key_path);
+	SecretKey pooled_sk;
+	ifstream ifs_pooled_sk(pooled_private_key_path, ios::binary);
+	pooled_sk.load(context, ifs_pooled_sk);
+	ifs_pooled_sk.close();
+	fprintf(stderr, "Loaded pooled secret key.\n");
+
+	// Instantiate the decryptor and encoder.
+	Decryptor decryptor(context, pooled_sk);
+#endif
+
+	// Instantiate evaluator.
+	Evaluator evaluator(context);
+
+	//Encryptor encryptor(context, pooled_pk);
+
+	// We need the encoder to get the number of samples per ct.
+	//CKKSEncoder encoder(context);
+	//int n_values_per_ct = encoder.slot_count();
+
+	vector<char*>* mat_fp_list = buffer_file(enc_mat_list_fp);
+	if (mat_fp_list->size() == 0)
+	{
+		fprintf(stderr, "There are no files in %s, make sure to have at least one file.\n", enc_mat_list_fp);
+		exit(1);
+	}
+
+	fprintf(stderr, "Pooling %d matrices from %s..\n", (int)(mat_fp_list->size()), enc_mat_list_fp);
+
+	//vector<Ciphertext>* temp_cts = load_continuous_enc_matrix(mat_fp_list->at(0), pooled_nrows, pooled_ncols, text_params_path);
+	//delete temp_cts;
+
+	// Load each row to a ciphertext and encrypt.
+	ifstream ifs_enc_matrix(mat_fp_list->at(0), ios::binary);
+
+	// This describes the matrix that is being saved to output.
+	int f_nrow = 0;
+	int f_ncol = 0;
+	ifs_enc_matrix.read(reinterpret_cast<char*>(&f_ncol), sizeof(int));
+	ifs_enc_matrix.read(reinterpret_cast<char*>(&(f_nrow)), sizeof(int));
+	ifs_enc_matrix.close();
+
+	int pooled_nrows = f_nrow;
+	int pooled_ncols = f_ncol;
+
+	// Save the pooled matrix.
+	//double** pooled_matrix = allocate_matrix(pooled_nrows, pooled_ncols);
+	//encrypt_plaintext_matrix_continuous_ct(pooled_matrix, pooled_nrows, pooled_ncols, text_params_path, pooled_public_key_path, op_fp);
+
+	vector<Ciphertext>* res_cts = new vector<Ciphertext>();
+	//Ciphertext res_ct;
+
+	for (int i_mat = 0; i_mat < (int)(mat_fp_list->size()); i_mat++)
+	{
+		int loaded_nArows, loaded_nAcols;
+		vector<Ciphertext>* A_cts = load_continuous_enc_matrix(mat_fp_list->at(i_mat), loaded_nArows, loaded_nAcols, text_params_path);
+
+		if (loaded_nAcols != pooled_ncols ||
+			loaded_nArows != pooled_nrows)
+		{
+			fprintf(stderr, "Sanity check failed: Matrix dimensions are not conformant for aggregation on list %s (%s): Agg[%dx%d] vs A[%dx%d]\n",
+				enc_mat_list_fp, mat_fp_list->at(i_mat),
+				pooled_nrows, pooled_ncols,
+				loaded_nArows, loaded_nAcols);
+
+			exit(1);
+		}
+
+		fprintf(stderr, "Pooling %s\n", mat_fp_list->at(i_mat));
+
+		for (int i_ct = 0; i_ct < (int)(A_cts->size()); i_ct++)
+		{
+			// Initialize ct's with first matrix.
+			if (i_mat == 0)
+			{
+				Ciphertext cur_res_ct = A_cts->at(i_ct);
+				res_cts->push_back(cur_res_ct);
+			}
+			else
+			{
+				if (A_cts->at(i_ct).coeff_modulus_size() > res_cts->at(i_ct).coeff_modulus_size())
+				{
+					evaluator.mod_switch_to_inplace(A_cts->at(i_ct), res_cts->at(i_ct).parms_id());
+					A_cts->at(i_ct).scale() = res_cts->at(i_ct).scale();
+				}
+				else if (A_cts->at(i_ct).coeff_modulus_size() < res_cts->at(i_ct).coeff_modulus_size())
+				{
+					evaluator.mod_switch_to_inplace(res_cts->at(i_ct), A_cts->at(i_ct).parms_id());
+					res_cts->at(i_ct).scale() = A_cts->at(i_ct).scale();
+				}
+
+				// Add the ct.
+				evaluator.add_inplace(res_cts->at(i_ct), A_cts->at(i_ct));
+			}
+		} // i_ct loop.
+
+		delete A_cts;
+	} // i_mat loop.
+
+	save_continuous_enc_matrix(res_cts, pooled_nrows, pooled_ncols, text_params_path, op_fp);
+} // secure_add_continuous_encrypted_matrices_in_memory_per_list option.
+
 void secure_add_continuous_encrypted_matrices_per_list(char* enc_mat_list_fp,
 	char* text_params_path,
 	char* pooled_public_key_path,
@@ -1923,21 +2104,21 @@ void secure_add_continuous_encrypted_matrices_per_list(char* enc_mat_list_fp,
 		exit(0);
 	}
 
-	// Instantiate and load the public key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
-	}
+	//// Instantiate and load the public key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
+	//}
 
-	ifstream ifs_pk(pooled_public_key_path, ios::binary);
-	PublicKey pooled_pk;
-	pooled_pk.load(context, ifs_pk);
-	ifs_pk.close();
+	//ifstream ifs_pk(pooled_public_key_path, ios::binary);
+	//PublicKey pooled_pk;
+	//pooled_pk.load(context, ifs_pk);
+	//ifs_pk.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded public key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded public key.\n");
+	//}
 
 	// Load relin key.
 	if (__DUMP_MATRIX_UTILS_MESSAGES__)
@@ -1955,20 +2136,20 @@ void secure_add_continuous_encrypted_matrices_per_list(char* enc_mat_list_fp,
 		fprintf(stderr, "Loaded relinearization key.\n");
 	}
 
-	// Load galois key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
-	}
-	ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
-	GaloisKeys pooled_galois_key;
-	pooled_galois_key.load(context, ifs_galois_key);
-	ifs_galois_key.close();
+	//// Load galois key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
+	//}
+	//ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
+	//GaloisKeys pooled_galois_key;
+	//pooled_galois_key.load(context, ifs_galois_key);
+	//ifs_galois_key.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded Galois key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded Galois key.\n");
+	//}
 
 #ifdef __DECRYPT_DEBUG__
 	if (!check_file(pooled_private_key_path))
@@ -1992,10 +2173,10 @@ void secure_add_continuous_encrypted_matrices_per_list(char* enc_mat_list_fp,
 	// Instantiate evaluator.
 	Evaluator evaluator(context);
 
-	Encryptor encryptor(context, pooled_pk);
+	//Encryptor encryptor(context, pooled_pk);
 
 	// We need the encoder to get the number of samples per ct.
-	CKKSEncoder encoder(context);
+	//CKKSEncoder encoder(context);
 	//int n_values_per_ct = encoder.slot_count();
 
 	vector<char*>* mat_fp_list = buffer_file(enc_mat_list_fp);
@@ -2070,20 +2251,20 @@ void secure_add_continuous_encrypted_matrices(char* enc_A_fp, char* enc_B_fp,
 		exit(0);
 	}
 
-	// Instantiate and load the public key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
-	}
-	ifstream ifs_pk(pooled_public_key_path, ios::binary);
-	PublicKey pooled_pk;
-	pooled_pk.load(context, ifs_pk);
-	ifs_pk.close();
+	//// Instantiate and load the public key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
+	//}
+	//ifstream ifs_pk(pooled_public_key_path, ios::binary);
+	//PublicKey pooled_pk;
+	//pooled_pk.load(context, ifs_pk);
+	//ifs_pk.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded public key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded public key.\n");
+	//}
 
 	// Load relin key.
 	if (__DUMP_MATRIX_UTILS_MESSAGES__)
@@ -2100,21 +2281,21 @@ void secure_add_continuous_encrypted_matrices(char* enc_A_fp, char* enc_B_fp,
 		fprintf(stderr, "Loaded relinearization key.\n");
 	}
 
-	// Load galois key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
-	}
+	//// Load galois key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
+	//}
 
-	ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
-	GaloisKeys pooled_galois_key;
-	pooled_galois_key.load(context, ifs_galois_key);
-	ifs_galois_key.close();
+	//ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
+	//GaloisKeys pooled_galois_key;
+	//pooled_galois_key.load(context, ifs_galois_key);
+	//ifs_galois_key.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded Galois key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded Galois key.\n");
+	//}
 
 #ifdef __DECRYPT_DEBUG__
 	if (!check_file(pooled_private_key_path))
@@ -2137,7 +2318,7 @@ void secure_add_continuous_encrypted_matrices(char* enc_A_fp, char* enc_B_fp,
 	// Instantiate evaluator.
 	Evaluator evaluator(context);
 
-	Encryptor encryptor(context, pooled_pk);
+	//Encryptor encryptor(context, pooled_pk);
 
 	// We need the encoder to get the number of samples per ct.
 	CKKSEncoder encoder(context);
@@ -2251,21 +2432,21 @@ void secure_subtract_continuous_encrypted_matrices(char* A_fp, char* B_fp,
 		exit(0);
 	}
 
-	// Instantiate and load the public key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
-	}
+	//// Instantiate and load the public key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
+	//}
 
-	ifstream ifs_pk(pooled_public_key_path, ios::binary);
-	PublicKey pooled_pk;
-	pooled_pk.load(context, ifs_pk);
-	ifs_pk.close();
+	//ifstream ifs_pk(pooled_public_key_path, ios::binary);
+	//PublicKey pooled_pk;
+	//pooled_pk.load(context, ifs_pk);
+	//ifs_pk.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded public key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded public key.\n");
+	//}
 
 	// Load relin key.
 	if (__DUMP_MATRIX_UTILS_MESSAGES__)
@@ -2283,21 +2464,21 @@ void secure_subtract_continuous_encrypted_matrices(char* A_fp, char* B_fp,
 		fprintf(stderr, "Loaded relinearization key.\n");
 	}
 
-	// Load galois key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
-	}
+	//// Load galois key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
+	//}
 
-	ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
-	GaloisKeys pooled_galois_key;
-	pooled_galois_key.load(context, ifs_galois_key);
-	ifs_galois_key.close();
+	//ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
+	//GaloisKeys pooled_galois_key;
+	//pooled_galois_key.load(context, ifs_galois_key);
+	//ifs_galois_key.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded Galois key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded Galois key.\n");
+	//}
 
 	// Load secret key -- this should be the actual pooled key.
 #ifdef __DECRYPT_DEBUG__
@@ -2321,7 +2502,7 @@ void secure_subtract_continuous_encrypted_matrices(char* A_fp, char* B_fp,
 	// Instantiate evaluator.
 	Evaluator evaluator(context);
 
-	Encryptor encryptor(context, pooled_pk);
+	//Encryptor encryptor(context, pooled_pk);
 
 	// We need the encoder to get the number of samples per ct.
 	CKKSEncoder encoder(context);
@@ -2437,21 +2618,21 @@ void secure_multiply_elementwise_continuous_encrypted_matrices(char* A_fp, char*
 		exit(0);
 	}
 
-	// Instantiate and load the public key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
-	}
+	//// Instantiate and load the public key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading public key from %s.\n", pooled_public_key_path);
+	//}
 
-	ifstream ifs_pk(pooled_public_key_path, ios::binary);
-	PublicKey pooled_pk;
-	pooled_pk.load(context, ifs_pk);
-	ifs_pk.close();
+	//ifstream ifs_pk(pooled_public_key_path, ios::binary);
+	//PublicKey pooled_pk;
+	//pooled_pk.load(context, ifs_pk);
+	//ifs_pk.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded public key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded public key.\n");
+	//}
 
 	// Load relin key.
 	if (__DUMP_MATRIX_UTILS_MESSAGES__)
@@ -2469,21 +2650,21 @@ void secure_multiply_elementwise_continuous_encrypted_matrices(char* A_fp, char*
 		fprintf(stderr, "Loaded relinearization key.\n");
 	}
 
-	// Load galois key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
-	}
+	//// Load galois key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
+	//}
 
-	ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
-	GaloisKeys pooled_galois_key;
-	pooled_galois_key.load(context, ifs_galois_key);
-	ifs_galois_key.close();
+	//ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
+	//GaloisKeys pooled_galois_key;
+	//pooled_galois_key.load(context, ifs_galois_key);
+	//ifs_galois_key.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded Galois key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded Galois key.\n");
+	//}
 
 	// Load secret key -- this should be the actual pooled key.
 #ifdef __DECRYPT_DEBUG__
@@ -2507,7 +2688,7 @@ void secure_multiply_elementwise_continuous_encrypted_matrices(char* A_fp, char*
 	// Instantiate evaluator.
 	Evaluator evaluator(context);
 
-	Encryptor encryptor(context, pooled_pk);
+	//Encryptor encryptor(context, pooled_pk);
 
 	// We need the encoder to get the number of samples per ct.
 	CKKSEncoder encoder(context);
@@ -2779,8 +2960,10 @@ void secure_row2row_inner_prod_continuous_encrypted_matrices(char* A_fp, char* B
 	encryptor.encrypt_zero(final_row2row_multsum_res_ct);
 	final_row2row_multsum_res_ct.scale() = scale;
 
-	int row_res_ct_data_pt_i = 0; // This holds the value we are setting in the result ct.
-	for (int i_ct = 0; i_ct < (int)(A_cts->size()); i_ct++)
+	int row_res_ct_data_pt_i = 0; // This holds the row index we are setting in the result ct.
+	for (int i_ct = 0; 
+		(row_res_ct_data_pt_i < loaded_nArows) && (i_ct < (int)(A_cts->size()));
+		i_ct++)
 	{
 		if (__DUMP_MATRIX_UTILS_MESSAGES__)
 		{
@@ -2830,9 +3013,20 @@ void secure_row2row_inner_prod_continuous_encrypted_matrices(char* A_fp, char* B
 		}
 
 		// Go over all the rows in the res_ct and mask/assign them.
-		for (int mask_i = 0; mask_i < n_values_per_ct; mask_i += loaded_nAcols)
+		for (int mask_i = 0; 
+			(row_res_ct_data_pt_i < loaded_nArows) && (mask_i < n_values_per_ct);
+			mask_i += loaded_nAcols)
 		{
-			//fprintf(stderr, "@ %d. masking index..\n", mask_i);
+			if (__DUMP_MATRIX_UTILS_MESSAGES__)
+			{
+				fprintf(stderr, "@ %d. masking index..\n", mask_i);
+			}
+
+			// This check does an early stop if we are past the number of rows in the matrix, i.e., we are processing unused values.
+			if (row_res_ct_data_pt_i > loaded_nArows)
+			{
+				break;
+			}
 
 			// Reset the mask.
 			std::fill(masker_array.begin(), masker_array.end(), 0);
@@ -2841,14 +3035,20 @@ void secure_row2row_inner_prod_continuous_encrypted_matrices(char* A_fp, char* B
 			// Encrypt the data points and save to file.
 			Plaintext cur_entry_masker_array_pt;
 
-			//fprintf(stderr, "Encoding mask array..\n", mask_i);
+			if (__DUMP_MATRIX_UTILS_MESSAGES__)
+			{
+				fprintf(stderr, "Encoding mask array @ mask_i=%d, res_row_i: %d\n", mask_i, row_res_ct_data_pt_i);
+			}
 
 			// Encode the vector.
 			encoder.encode(masker_array, scale, cur_entry_masker_array_pt);
 			evaluator.mod_switch_to_inplace(cur_entry_masker_array_pt, elem_mult_ct.parms_id());
 			cur_entry_masker_array_pt.scale() = elem_mult_ct.scale();
 
-			//fprintf(stderr, "Multiplying with the mask array..\n", mask_i);
+			if (__DUMP_MATRIX_UTILS_MESSAGES__)
+			{
+				fprintf(stderr, "Multiplying with the mask array @ mask_i=%d, res_row_i: %d\n", mask_i, row_res_ct_data_pt_i);
+			}
 
 			// Multiple with the mask.
 			Ciphertext masked_res_ct;
@@ -2856,7 +3056,10 @@ void secure_row2row_inner_prod_continuous_encrypted_matrices(char* A_fp, char* B
 			evaluator.relinearize_inplace(masked_res_ct, pooled_relin_key);
 			evaluator.rescale_to_next_inplace(masked_res_ct);
 
-			//fprintf(stderr, "Rotating result to %d..\n", mask_i - row_res_ct_data_pt_i);
+			if (__DUMP_MATRIX_UTILS_MESSAGES__)
+			{
+				fprintf(stderr, "Rotating result to %d to access %d..\n", mask_i - row_res_ct_data_pt_i, row_res_ct_data_pt_i);
+			}
 
 			// Add the current masked value to the current result: First, move it to the correct position.
 			evaluator.rotate_vector_inplace(masked_res_ct, mask_i - row_res_ct_data_pt_i, pooled_galois_key);
@@ -2966,21 +3169,21 @@ void secure_multiply_matrices_Acol_Brow_expansions(char* A_dir, char* B_dir,
 		fprintf(stderr, "Loaded relinearization key.\n");
 	}
 
-	// Load galois key.
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
-	}
+	//// Load galois key.
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loading galois key from %s.\n", pooled_galois_key_path);
+	//}
 
-	ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
-	GaloisKeys pooled_galois_key;
-	pooled_galois_key.load(context, ifs_galois_key);
-	ifs_galois_key.close();
+	//ifstream ifs_galois_key(pooled_galois_key_path, ios::binary);
+	//GaloisKeys pooled_galois_key;
+	//pooled_galois_key.load(context, ifs_galois_key);
+	//ifs_galois_key.close();
 
-	if (__DUMP_MATRIX_UTILS_MESSAGES__)
-	{
-		fprintf(stderr, "Loaded Galois key.\n");
-	}
+	//if (__DUMP_MATRIX_UTILS_MESSAGES__)
+	//{
+	//	fprintf(stderr, "Loaded Galois key.\n");
+	//}
 
 #ifdef __DECRYPT_DEBUG__
 	if (!check_file(pooled_private_key_path))
@@ -3006,9 +3209,9 @@ void secure_multiply_matrices_Acol_Brow_expansions(char* A_dir, char* B_dir,
 
 	Encryptor encryptor(context, pooled_pk);
 
-	// We need the encoder to get the number of samples per ct.
-	CKKSEncoder encoder(context);
-	//int n_values_per_ct = encoder.slot_count();
+	//// We need the encoder to get the number of samples per ct.
+	//CKKSEncoder encoder(context);
+	////int n_values_per_ct = encoder.slot_count();
 
 	// Load first matrix and get dimensions of the multiplication.
 	char first_mat_fp[1000];

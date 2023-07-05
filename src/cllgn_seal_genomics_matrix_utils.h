@@ -124,6 +124,14 @@ void encrypt_plaintext_matrix_continuous_ct(double** matrix, int nrow, int ncol,
 	char* pooled_public_key_path,
 	char* op_fp);
 
+void secure_add_continuous_encrypted_matrices_in_memory_per_list(char* enc_mat_list_fp,
+	char* text_params_path,
+	char* pooled_public_key_path,
+	char* pooled_relin_key_path,
+	char* pooled_galois_key_path,
+	char* pooled_private_key_path, // To be removed.
+	char* op_fp);
+
 void secure_add_continuous_encrypted_matrices_per_list(char* enc_mat_list_fp,
 	char* text_params_path,
 	char* pooled_public_key_path,

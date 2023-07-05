@@ -761,7 +761,7 @@ Save a plaintext binary matrix file in text format.
 
 ***
 
-##### >> COLLAGENE.sh -transform_plaintext_elementwise_per_callback [Plaintext matrix path] [Function: "log"/"exp"/"sigmoid"] [Output matrix path]
+##### >> COLLAGENE.sh -transform_plaintext_elementwise_per_callback [Plaintext matrix path] [Function: "log"/"exp"/"sigmoid"/"inv"] [Output matrix path]
 
 Elementwise transform all entries in a plaintext matrix using a callback function.
 
@@ -770,12 +770,14 @@ Elementwise transform all entries in a plaintext matrix using a callback functio
 <ul>
 <li> [Plaintext matrix path]: Plaintext matrix file.</li> 
 
-<li> [Function: "log"/"exp"/"sigmoid"]: The function to be used for transforming.</li> 
+<li> [Function: "log"/"exp"/"sigmoid"/"inv"]: The function to be used for transforming.</li> 
 
 <li> [Output matrix path]: Transformed plaintext output matrix.</li> 
 </ul>
 
-*__Outputs:__* Text file for the plaintext matrix.
+*__Outputs:__* Plaintext matrix.
+
+*__Remarks:__* This option provides convenience when it is being processed elementwise using the callback functions.
 
 ***
 
