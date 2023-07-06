@@ -115,6 +115,6 @@ These files are the same for all sites and should only be used to encrypt partia
 ## Testing the Keys
 *key_generation_example.sh* contains an example of generating a random matrix, encrypting it, and collectively decrypting it using the key shares that are just set up at each site's directory.
 
-This option is implemented by "-example_test_ckks_keys". It generates random matrices on each site, then encrypts them using the shared public key, then decrypts each matrix 
+This option is implemented by "-example_test_ckks_keys". It generates random matrices on each site, then encrypts them using the shared public key, then decrypts each matrix.
 
 
