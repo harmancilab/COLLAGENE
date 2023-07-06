@@ -91,7 +91,7 @@ COLLAGENE.sh -decrypt_site_DSK 0 RECEIVED_KEYS
 
 This command decrypts the key share for site-0. The password for decryption will be asked at the command line and this must match the password provided while DSK encryption key was generated.
 
-The received keys directory contains several other common keys (relinearization, Galois, partdec encryption keys) that will be used for executing protocols. It also contains the encrypted key-shares of other sites but they cannot be decrypted by other sites (each site can only decrypt their own key share).
+The received keys directory contains several other common keys (relinearization, Galois, partdec encryption keys) that will be used for executing protocols. It also contains the encrypted key-shares of other sites but they cannot be decrypted by other 3rd sites (each site can only decrypt their own key share).
 
 Final step is setting up the keys for COLLAGENE script:
 ```
@@ -100,13 +100,13 @@ COLLAGENE.sh -set_params ckks.params RECEIVED_KEYS/pooled.public_key RECEIVED_KE
 ```
 After this step, the site is ready to perform secure computations. This step simply copies the specified keys to the key directory.
 
-Note that the partdec keys (See below) are copied manually if they will be used:
+Note that the partdec keys (See below) should be copied manually if they will be used:
 ```
 cp RECEIVED_KEYS/partdec_data_enc_hash.symmetric_key SITE_${i_site}
 ```
 
 ## Partial decrypted data (partdec) Encryption Keys
-KeyMaker generates symmetric keys that the sites can use to encrypt partially decrypted data matrices from outside entities. These files are named respectively for each site (e.g., site_0_partdec_data_enc_hash.symmetric_key.enc) and they are encrypted by the site's DSK encryption key by KeyMaker.
+KeyMaker generates symmetric keys that the sites can use to encrypt partially decrypted data matrices. These files are named respectively for each site (e.g., site_0_partdec_data_enc_hash.symmetric_key.enc) and they are encrypted by the site's DSK encryption key by KeyMaker.
 
 After decryption of these partdec keys, these keys are named to partdec_data_enc_hash.symmetric_key.enc.
 
