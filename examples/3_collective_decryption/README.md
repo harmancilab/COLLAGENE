@@ -2,7 +2,7 @@
 A collective decryption operation is necessary for decrypting any data that is encrypted with the common public key. In this example, we show exhausting a 
 random matrix by multiplying it all the way down to the lowest level and then collectively decrypting it.
 
-You need to make sure *COLLAGENE.sh* script and the DSK directory (named *SITE_DSK_ENC_KEYS/*) are copied from previous example to this folder.
+You need to make sure *COLLAGENE.sh* script and the DSK directory for the first site (named *SITE_0/*) are copied from previous example to this folder.
 
 ## Matrix Encryption
 The encryption uses the public key and is performed using *-encrypt_plaintext_matrix* option.
@@ -12,6 +12,9 @@ Following generates a random 10x10 matrix and encrypts it using the public key s
 ./COLLAGENE.sh -generate_random_plaintext_matrix 10 10 random_matrix_0.bin
 ./COLLAGENE.sh -encrypt_plaintext_matrix SITE_0 random_matrix_0.bin random_matrix_0.bin.enc
 ```
+
+In this command, *SITE_0* refers to the directory that contains the installed keys for the site. The directory name has no special meaning but the files in the 
+directory should not be modified.
 
 ---
 
@@ -47,6 +50,7 @@ Next, the partial decryptions from other sites are merged at the 1st site:
 ls *.partdec * > PARTDECS.list
 COLLAGENE.sh -pool_partially_decrypted_matrices SITE_0 PARTDECS.list random_matrix_0.bin.enc_collaborative_dec.bin
 ```
+The first command makes a file that contains the list of partially decrypted files. Second command aggregates the partial decryptions.
 
 ## collaborative_decrypt_matrix.sh Script:
 To simulate collective decryption protocol more cleanly, we included a script (*collaborative_decrypt_matrix.sh*) to later examples that wraps these steps into one command. 

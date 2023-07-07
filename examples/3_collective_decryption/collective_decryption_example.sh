@@ -16,10 +16,8 @@ chmod 755 *.sh
 
 N_SITES=3
 
-# Site indexing is always done with 0-based indices. This is important for key generation step and for collective decryption.
-# You also do not have to keep N_SITES parameter in data_config.params file. This file is not required by COLLAGENE.sh but it is needed by file I/O script to describe the common sharing storage options (AWs, SCP, etc).
-# Note that the site indexing is not necessary, it is just here for generating an iterator to loop through partial decryptions.
-# In principle, the sites only need to know their index to make sure the files they upload can be tracked by other sites.
+# Site Indexing: All sites must be assigned an index starting from 0 going upto N_sites-1. 
+# Site indices can be arbitrarily assigned among the collaborating sites.
 echo "Read ${N_SITES} from data config file."
 N_SITES_MIN_ONE=`echo ${N_SITES} | awk {'print $1-1'}`
 site_iters=`seq 0 ${N_SITES_MIN_ONE}`
