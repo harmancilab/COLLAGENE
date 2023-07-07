@@ -63,9 +63,9 @@ then
 	exit 1
 fi
 
-if [[ ! -f "/FILE_IO_UTILITIES.sh" ]]
+if [[ ! -f "./FILE_IO_UTILITIES.sh" ]]
 then
-	echo "Could not find /FILE_IO_UTILITIES.sh script, copy it from source code scripts/ directory."
+	echo "Could not find ./FILE_IO_UTILITIES.sh script, copy it from source code scripts/ directory."
 	exit 1
 fi
 
