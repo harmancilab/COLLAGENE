@@ -77,7 +77,6 @@ do
 	./COLLAGENE.sh -symmetric_encrypt_partdec_data SITE_${i_site} ${enc_matrix_file}_partdec_by_${i_site}.partdec SITE_${i_site}/partdec_data_enc_hash.symmetric_key ${enc_matrix_file}_partdec_by_${i_site}.partdec.enc
 
 	# Upload the partial decryption.
-	# Note that we do not upload the partial decryption if 
 	echo "matrix_from_site${i_source_site}.bin.enc_partdec_by_${i_site}.partdec.enc" > files.list
 	./FILE_IO_UTILITIES.sh -upload_files_to_shared data_config.params files.list
 done

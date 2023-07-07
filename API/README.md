@@ -432,7 +432,7 @@ Partially decrypts a matrix locally using the site's DSK.
 
 <li> [Encrypted matrix path]: The path to the encrypted matrix to be partially decrypted.</li> 
 
-<li> [Site index (0-based)]: This is the unique index of the local site starting from *0, 1 ,..., n_sites*.</li> 
+<li> [Site index (0-based)]: This is the unique index of the local site starting from *0, 1 ,..., n_sites-1*.</li> 
 
 <li> [Decryption noise variance bit size (40-bits by default)]: The variance of the noise in number of bits, i.e., smudging noise. If this is set to 0, 40-bits of noise is added to the partially decrypted data.</li> 
 
@@ -491,7 +491,7 @@ Symmetrically encrypt partially decrypted matrices.
 
 ##### >> COLLAGENE.sh -symmetric_decrypt_partdec_data [Parameter directory] [Encrypted partdec file] [openssl hash file] [Output file]
 
-Symmetrically decrypt partially decrypted matrices.
+Symmetrically decrypt the partially decrypted matrices that were encrypted by the symmetric partdec key.
 
 *__Inputs:__*
 
@@ -681,7 +681,7 @@ Pad a plaintext matrix to the nearest 2^n dimensions by 0 padding in rows and co
 
 *__Outputs:__* Padded plaintext matrix file with 0 padding.
 
-*__Remarks:__* This option identifies the next closest power of 2 for rows and columns and padds the matrix with zeroes to match this size.
+*__Remarks:__* This option identifies the next closest power of 2 for rows and columns and pads the matrix with zeroes to match this size.
 
 ***
 
@@ -699,7 +699,7 @@ Pad a plaintext matrix to the nearest 2^n dimensions by 0 padding in the rows.
 
 *__Outputs:__* Padded plaintext matrix file with 0 padding in the rows.
 
-*__Remarks:__* This option identifies the next closest power of 2 for rows and padds the matrix with zeroes to match this size.
+*__Remarks:__* This option identifies the next closest power of 2 for rows and pads the matrix with zeroes to match this size.
 
 ***
 
@@ -717,7 +717,7 @@ Pad a plaintext matrix to the nearest 2^n dimensions by 0 padding in the columns
 
 *__Outputs:__* Padded plaintext matrix file with 0 padding in the columns.
 
-*__Remarks:__* This option identifies the next closest power of 2 for columns and padds the matrix with zeroes to match this size.
+*__Remarks:__* This option identifies the next closest power of 2 for columns and pads the matrix with zeroes to match this size.
 
 ***
 
@@ -799,7 +799,7 @@ Convert a tab-delimited plaintext matrix into binary formatted matrix.
 
 *__Outputs:__* Text file for the plaintext matrix.
 
-*__Remarks:__* This option is useful to convert decrypted matrices into text format.
+*__Remarks:__* This option is useful to convert tab-delimited matrix into binary format that can be encrypted.
 
 ***
 
@@ -877,6 +877,7 @@ Waits for a list of files/directories in shared directory.
 
 *__Remarks:__* This option waits for a list of specific files or directories in the shared space before they can be downloaded and processed. It blocks until all files are ready to be downloaded. 
 
+***
 
 ##### ./FILE_IO_UTILS.sh -download_files_from_shared [Data config file] [File/Directory list]
 
@@ -893,6 +894,8 @@ Download a list of files/directories from the shared directory.
 *__Outputs:__* None.
 
 *__Remarks:__* This option downloads a list of specific files or directories from the shared space. The files that do not exist are skipped. To avoid this, the files should be waited on.
+
+***
 
 ##### ./FILE_IO_UTILS.sh -upload_files_to_shared [Data config file] [File/Directory list]
 

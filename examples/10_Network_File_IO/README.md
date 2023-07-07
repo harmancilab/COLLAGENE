@@ -11,7 +11,7 @@ The encrypted intermediate data is stored in a remote server (AWS, SSH) on a sha
 COLLAGENE supports 3 options for file I/O:
 <ol>
 <li> Local: Data is stored at a local folder. This option can be used for simulating and testing collaborative protocols by running all sites on the same client (Clients run in their folders and the shared directory is on the same computer.)</li> 
-<li> SCP Server: Data is stored at an sFTP server that is access via SCP command with accession keys. COLLAGENE requires a key-based authentication to automate file transfers. This requires the sites to have authorized access to a shared ssh server. These keys can be setup using *ssh-keygen* and *ssh-copy-id* commands:</li> 
+<li> SCP Server: Data is stored at an SFTP server that is accessed via SCP command with accession keys. COLLAGENE requires a key-based authentication to automate file transfers. This requires the sites to have authorized access to a shared ssh server. These keys can be setup using *ssh-keygen* and *ssh-copy-id* commands:</li> 
 
 	# Run ssh-keygen to generate a public/private key pair for authentication, note that the passphrase should be skipped at this step.
 	ssh-keygen -f test_key
