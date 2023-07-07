@@ -1,5 +1,5 @@
 # Command Line Interface for COLLAGENE
-The command line options of COLLAGENE are described here.
+The command line options of COLLAGENE and network file I/O are described here.
 
 ## COLLAGENE.sh:
 
@@ -823,7 +823,7 @@ Remotely delete files in shared directory.
 
 *__Outputs:__* None.
 
-*__Remarks:__* This option deletes all of the encrypted intermediate files in the shared directory. This is necessary whenever new collaborative calculations will be executed between sites.
+*__Remarks:__* This option deletes all of the encrypted intermediate files in the shared directory. This is necessary whenever new collaborative calculations will be executed between sites. Users must be careful to ensure that these directories do not include important files.
 
 ***
 
