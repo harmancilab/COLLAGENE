@@ -322,7 +322,6 @@ then
 			download_cmd="cp -r ${LOCAL_REMOTE_SHARED_DIR}/${manifest_file} ${CUR_FILE_IO_TEMP_DIR}"
 		elif [[ ${IO_TYPE} == "S3" ]]
 		then
-			#./BIN_DIR/aws s3 cp s3://secureomics/HECRYPT_test.tar.bz2 test.tar.bz2
 			download_cmd="${AWS_CLI_PATH} s3 cp ${S3_REMOTE_SHARED_DIR_KEY}/${manifest_file} ${CUR_FILE_IO_TEMP_DIR}"
 		fi
 	
@@ -437,7 +436,6 @@ then
 			download_cmd="cp ${LOCAL_REMOTE_SHARED_DIR}/${manifest_file} ${CUR_FILE_IO_TEMP_DIR}"
 		elif [[ ${IO_TYPE} == "S3" ]]
 		then
-			#./BIN_DIR/aws s3 cp s3://secureomics/HECRYPT_test.tar.bz2 test.tar.bz2
 			download_cmd="${AWS_CLI_PATH} s3 cp ${S3_REMOTE_SHARED_DIR_KEY}/${manifest_file} ${CUR_FILE_IO_TEMP_DIR}"
 		fi
 			
