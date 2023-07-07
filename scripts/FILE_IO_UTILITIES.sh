@@ -57,6 +57,8 @@ if [[ ${cmd_option} == "-get_date_time_str" ]]
 then
 	date_time_str=`date "+[%m/%d/%y - %H:%M:%S]"`
 	echo $date_time_str
+
+	exit 0
 fi
 
 if [[ ${cmd_option} == "-get_resource_size" ]]
@@ -661,4 +663,4 @@ then
 fi
 
 echo "Unknown option "
-exit ${cmd_option}
+exit 1
