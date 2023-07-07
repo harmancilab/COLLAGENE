@@ -34,7 +34,7 @@
 #
 # After these are run successfully, it is also necessary to setup the folder that will be used to store the encrypted datasets at the remote file server.
 # For this, one site can login to the server and create a folder at a known path.
-# The remote directory path is set by: "SCP_REMOTE_SHARED_DIR=/data/aharmanci1/FEDERATION_DATA" in data_config.params file
+# The remote directory path is set by: "SCP_REMOTE_SHARED_DIR=/data/john.doe/FEDERATION_DATA" in data_config.params file
 #
 #########################################################################
 #
@@ -44,7 +44,7 @@
 # 
 # Requires downloading and configuring the AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 # After setting AWS CLI path:
-# AWS_CLI_PATH=/home/aharmanci1/binaries/aws
+# AWS_CLI_PATH=/home/john.doe/binaries/aws
 # Shared data bucket:
 # SHARED_DATA_BUCKET=s3://secureomics
 # The key to the directory that will be used as the prefix:
