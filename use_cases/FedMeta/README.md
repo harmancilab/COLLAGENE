@@ -44,7 +44,7 @@ If you want to create your own keys, you can refer to the key generation example
 Note that by default, I/O type is set to a local directory, i.e., you can see the lines in *data_config.params* file:
 ```
 IO_TYPE=LOCAL
-LOCAL_REMOTE_SHARED_DIR=/internal/aharmanci1/dir/SHARED_DATA_MODEL_DIR
+LOCAL_REMOTE_SHARED_DIR=/data/SHARED_DATA_MODEL_DIR
 ```
 Other options are commented out. To use AWS or SCP options, uncomment them after configuring AWS or SSH keys.
 
