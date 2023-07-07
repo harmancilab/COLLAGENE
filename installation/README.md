@@ -87,7 +87,12 @@ make
 ```
 
 After running successfully, This should build *COLLAGENE_Release* executable under *bin/* directory.
-You need to make sure that *bin/COLLAGENE_Release* is in your *PATH* variable so that it can be called by the COLLAGENE scripts under *scripts/* directory.
+You need to make sure that *bin/COLLAGENE_Release* is in your *PATH* variable so that it can be called by the COLLAGENE scripts under *scripts/* directory:
+
+For the current bash session, you can set the PATH variable using:
+```
+export PATH=$PATH:${PWD}/bin
+```
 
 ## Docker Usage
 In case your environment does not support installation of COLLAGENE, you can use the preset COLLAGENE image, in which you can setup the code.
