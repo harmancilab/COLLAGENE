@@ -60,13 +60,14 @@ Options:
 		-multiply_elementwise_plaintext_matrices [Matrix A file] [Matrix B file] [Output plaintext matrix file]
 		-row2row_multiply_plaintext_matrices [Matrix A file] [Matrix B file] [Output plaintext matrix file]
 		-add_plaintext_matrix [Matrix A file] [Matrix B file] [Output plaintext matrix file]
+		-sub_plaintext_matrix [Matrix A file] [Matrix B file] [Output plaintext matrix file]
 		-add_plaintext_matrix_list [Plaintext matrix list file] [Output plaintext matrix file]
 		-pad_plaintext_matrix_2_to_n [Plaintext matrix path] [Output matrix path]
 		-pad_plaintext_matrix_row_2_to_n [Plaintext matrix path] [Output matrix path]
 		-pad_plaintext_matrix_col_2_to_n [Plaintext matrix path] [Output matrix path]
 		-pad_plaintext_matrix_custom [Plaintext matrix path] [Padded # rows] [Padded # columns] [Output matrix path]
 		-save_matrix_text [Plaintext matrix path] [Output text matrix path]
-		-transform_plaintext_elementwise_per_callback [Plaintext matrix path] [Function: \"log\"/\"exp\"/\"sigmoid\"] [Output matrix path]
+		-transform_plaintext_elementwise_per_callback [Plaintext matrix path] [Function: \"log\"/\"exp\"/\"sigmoid\"/\"inv\"] [Output matrix path]
 		-convert_plaintext_matrix_text_2_bin [Matrix A file] [Row ids in input (first col.)? (0/1)] [Col. id's in input (first row)? (0/1)] [Output plaintext matrix file]
 		-write_plaintext_matrix_dimensions [Parameter directory] [Plaintext matrix path] [Dimensions file path]"
 		
@@ -1101,6 +1102,25 @@ then
 	
 	exit $?
 fi
+
+if [[ "${cmd_option}" == "-sub_plaintext_matrix" ]] 
+then
+	if [[ $# != 4 ]]
+	then
+		echo "USAGE: $0 $1 [Matrix A file] [Matrix B file] [Output plaintext matrix file]"
+		exit 1
+	fi
+
+	plaintext_matA_file=$2
+	plaintext_matB_file=$3
+	op_pt_matrix_fp=$4
+
+	${COLLAGENE_SECURE_EXEC} -plain_sub_matrices ${plaintext_matA_file} ${plaintext_matB_file} ${op_pt_matrix_fp}
+	
+	exit $?
+fi
+
+
 
 if [[ "${cmd_option}" == "-add_plaintext_matrix" ]] 
 then

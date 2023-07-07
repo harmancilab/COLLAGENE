@@ -12,7 +12,7 @@ n_sites=$2
 n_sites_min_one=`echo ${n_sites} | awk {'print $1-1}'`
 site_iters=`seq 0 ${n_sites_min_one}`
 
-rm -f *.partdec
+rm -f ${enc_matrix_file}_partdec_by_*.partdec
 for decrypting_i_site in ${site_iters[@]}
 do
 	echo "Partially decrypting ${i_site}.'s data matrix by site-${decrypting_i_site}.."

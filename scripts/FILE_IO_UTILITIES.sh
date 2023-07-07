@@ -94,7 +94,7 @@ then
 	if [[ $# != 2 ]]
 	then
 		echo "USAGE: $0 $1 [Data config file]"
-		exit
+		exit 1
 	fi
 
 	data_config_file=$2
@@ -126,11 +126,26 @@ then
 			echo "Key permission is not set correctly: ${fed_key_permission}, should be set to 600: \"chmod 600 ${SCP_FEDERATION_SECRET_KEY}\""
 			exit 1
 		fi
+
+		# Do not use the root directories.
+		if [[ "${SCP_REMOTE_SHARED_DIR}" == "/" ]]
+		then
+			echo "The remote shared directory seems to be the root directory, cannot use the root directory as the shared directory."
+			exit 1
+		fi
+
 	elif [[ ${IO_TYPE} == "LOCAL" ]]
 	then
 		if [[ ! -d ${LOCAL_REMOTE_SHARED_DIR} ]]
 		then
 			echo "Could not find local ${LOCAL_REMOTE_SHARED_DIR}"
+			exit 1
+		fi
+
+		# Do not use the root directories.
+		if [[ "${LOCAL_REMOTE_SHARED_DIR}" == "/" ]]
+		then
+			echo "The local shared directory seems to be the root directory, cannot use the root directory as the shared directory."
 			exit 1
 		fi
 	elif [[ ${IO_TYPE} == "S3" ]]
@@ -200,12 +215,28 @@ then
 
 	if [[ ${IO_TYPE} == "SCP" ]]
 	then
+		if [[ "${LOCAL_REMOTE_SHARED_DIR}" == "/" ]]
+		then
+			echo "The local shared directory seems to be the root directory, cannot clean the root directory."
+			exit 1
+		fi
+
+		echo "BE VERY CAREFUL WHILE RUNNING THE FOLLOWING COMMAND, MAKE SURE IT DOES NOT DELETE ANY IMPORTANT DIRECTORIES:"
+
 		echo ${SSH_PREAMBLE} ${SCP_HOST} "rm -f -r ${SCP_REMOTE_SHARED_DIR}/*"
 		last_ret=$?
 		exit ${last_ret}
 	elif [[ ${IO_TYPE} == "LOCAL" ]]
 	then
-		echo "rm -f -r  ${LOCAL_REMOTE_SHARED_DIR}/*"
+		if [[ "${LOCAL_REMOTE_SHARED_DIR}" == "/" ]]
+		then
+			echo "The local shared directory seems to be the root directory, cannot clean the root directory."
+			exit 1
+		fi
+
+		echo "BE VERY CAREFUL WHILE RUNNING THE FOLLOWING COMMAND, MAKE SURE IT DOES NOT DELETE ANY IMPORTANT DIRECTORIES:"
+
+		echo "rm -f -r ${LOCAL_REMOTE_SHARED_DIR}/*"
 		last_ret=$?
 		exit ${last_ret}
 	elif [[ ${IO_TYPE} == "S3" ]]
@@ -221,7 +252,7 @@ then
     if [[ $# != 3 ]]
     then
         echo "USAGE: $0 $1 [Data config file] [file/directory list]"
-        exit
+        exit 1
     fi
 
     source ${data_config_file}
@@ -315,7 +346,7 @@ then
 	if [[ $# != 3 ]]
 	then
 		echo "USAGE: $0 $1 [Data config file] [File list to check]"
-		exit
+		exit 1
 	fi
 
 	data_config_file=$2
@@ -348,7 +379,7 @@ then
 	if [[ $# != 3 ]]
 	then
 		echo "USAGE: $0 $1 [Data config file] [File list to upload]"
-		exit
+		exit 1
 	fi
 
 	data_config_file=$2
@@ -499,7 +530,7 @@ then
 	if [[ $# != 4 ]]
 	then
 		echo "USAGE: $0 $1 [Data config file] [File list to download] [Local directory to save the files]"
-		exit
+		exit 1
 	fi
 
 	data_config_file=$2
@@ -629,3 +660,5 @@ then
 	exit 0
 fi
 
+echo "Unknown option "
+exit ${cmd_option}
