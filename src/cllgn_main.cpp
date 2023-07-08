@@ -45,7 +45,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	if (argc < 3)
+	if (argc < 2)
 	{
 		fprintf(stderr, "USAGE: %s [options] [arguments]\n\
 Data Processing/Formatting:\n\
