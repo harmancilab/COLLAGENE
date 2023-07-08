@@ -11,7 +11,7 @@ COLLAGENE_SECURE_EXEC=COLLAGENE_Release
 MAX_N_WORKERS=5
 
 # This is the wrapper script for COLLAGENE's utilities. You can add this script to your path and use it to process data.
-if [[ $# -lt 2 ]]
+if [[ $# -lt 1 ]]
 then
 	echo "USAGE: $0 [Options] [Arguments]
 Options:
