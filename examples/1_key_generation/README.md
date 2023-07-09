@@ -61,7 +61,7 @@ Step 1 of the analysis is described above for generating the DSK encryption keys
 After uploading is complete, a table entry should be visible under uploads table.
 
 ### Step 2: Upload DSK Encryption Keys
-Scroll down to step 2 and upload the tar file named ${DSK_ENCRYPTION_KEYS_DIR}.tar. This tar archive contains only the public DSK encryption keys (and ckks parameters file), does not leak any information other than the number of sites.
+Scroll down to step 2 and upload the tar file named *CLIENT_DSK_ENCRYPTION_KEYS.tar*. This tar archive contains only the public DSK encryption keys (and ckks parameters file), does not leak any information other than the number of sites.
 
 ### Step 3: Start DSK Generation Task
 After uploading, move onto step 3, where key generation task is submitted. Click on the key generation task submit button. It asks to verify submission and starts the task. 
