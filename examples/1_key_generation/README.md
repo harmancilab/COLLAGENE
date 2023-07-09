@@ -71,7 +71,7 @@ There may be several updates to task status.
 The key generation should finish within 10 minutes. After finished, a link should appear in the tasks table. Clicking on this will save the generated keys.
 
 ### Final Step: Download the keys
-The result is a new archive file that is located on AWS cloud and the pre-signed URL can be shared with all sites (Time limit for this link is 2 weeks from the time it is finished, after that it becomes invalid.). 
+The result is a new archive file that is located on AWS cloud and the pre-signed URL can be shared among all sites (Time limit for this link is 2 weeks from the time it is finished, after that it becomes invalid.). Alternatively, the sites can use the folder identifier in *KeyMaker* to recall the results.
 
 This file can also be downloaded programmatically. For this, right click on the download button and save link to clipboard. Next, use wget to download the DSK tar file similar to following:
 ```
