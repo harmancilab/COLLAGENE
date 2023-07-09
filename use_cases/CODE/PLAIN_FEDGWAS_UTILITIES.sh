@@ -79,18 +79,18 @@ then
 		split -n l/${site_i}/${N_SITES} shuffled_subject_ids.txt > ${INPUT_DATA_DIR}/SITE_${site_i}/subjects.list
 
 	        # Separate phenotypes
-		multicolumn_processing_tools -extract_rows_per_query_column_preserve_query_order ${INPUT_DATA_DIR}/SITE_${site_i}/subjects.list ${INPUT_DATA_DIR}/phenotypes.txt 0 1 temp_pheno.txt
+		${COLLAGENE_SECURE_EXEC} -extract_rows_per_query_column_preserve_query_order ${INPUT_DATA_DIR}/SITE_${site_i}/subjects.list ${INPUT_DATA_DIR}/phenotypes.txt 0 1 temp_pheno.txt
 		echo -e "SAMPLE\tPHENOTYPE" > pheno_header.txt
 		cat pheno_header.txt temp_pheno.txt > ${INPUT_DATA_DIR}/SITE_${site_i}/phenotypes.txt
 
 	        # Separate covariates.
-		multicolumn_processing_tools -extract_rows_per_query_column_preserve_query_order ${INPUT_DATA_DIR}/SITE_${site_i}/subjects.list ${INPUT_DATA_DIR}/feat_matrix.txt 0 1 temp_feats.txt
+		${COLLAGENE_SECURE_EXEC} -extract_rows_per_query_column_preserve_query_order ${INPUT_DATA_DIR}/SITE_${site_i}/subjects.list ${INPUT_DATA_DIR}/feat_matrix.txt 0 1 temp_feats.txt
 		head -n 1 ${INPUT_DATA_DIR}/feat_matrix.txt > feat_header.txt
 		cat feat_header.txt temp_feats.txt > ${INPUT_DATA_DIR}/SITE_${site_i}/feat_matrix.txt
 
 		# Separate genotypes.
 		echo "Extracting genotypes for site ${site_i}"
-		PhenomeModel -extract_subsample_GMMAT_genotypes_from_GMMAT_genotype_matrix  ${INPUT_DATA_DIR}/genotypes.txt GMMAT_sample_ids.list ${INPUT_DATA_DIR}/SITE_${site_i}/subjects.list ${INPUT_DATA_DIR}/SITE_${site_i}/genotypes.txt
+		${COLLAGENE_SECURE_EXEC} -extract_subsample_GMMAT_genotypes_from_GMMAT_genotype_matrix  ${INPUT_DATA_DIR}/genotypes.txt GMMAT_sample_ids.list ${INPUT_DATA_DIR}/SITE_${site_i}/subjects.list ${INPUT_DATA_DIR}/SITE_${site_i}/genotypes.txt
 
 		exit
 done
