@@ -50,7 +50,7 @@ Other options are commented out. To use AWS or SCP options, uncomment them after
 
 6) Validate the input files:
 ```
-./SECURE_FEDMETA_CLIENT.sh --validate_meta_run
+./SECURE_FEDMETA_CLIENT.sh -validate_meta_run
 ```
 
 Note that the pipeline does this check but one can explicitly validate data and some of the config options.
