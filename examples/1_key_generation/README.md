@@ -1,5 +1,5 @@
 # Key Generation 
-This folder shows an example of generating keys using *KeyMaker* server (https://www.secureomics.org/KeyMaker) in a collaborative setting of 3 sites using the *COLLAGENE.sh* script.
+This example shows an example of generating keys using *KeyMaker* server (https://www.secureomics.org/KeyMaker) in a collaborative setting of 3 sites using the *COLLAGENE.sh* script.
 
 Note that sites are numbered in the key-generation setup. The sites need to be assigned unique and consecutive ids (starting from 0) and adhere to the usage of these id's.
 
