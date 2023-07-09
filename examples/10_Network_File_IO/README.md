@@ -95,7 +95,7 @@ echo "Decrypted matrix:"
 cat full_decrypted_matrix_from_site${i_site}.bin.txt
 ```
 
-The full implementation of this script can be found locally with name "networked_partial_decryption_example.sh" (including error checks). 
+The full implementation of this script can be found locally with name "*networked_partial_decryption_example.sh*" (including error checks). 
 
 To run this script, it is necessary to put it in different directories (including the key directories) for each site.
 
@@ -127,9 +127,11 @@ nohup ./networked_partial_decryption_example.sh 2 >& SITE2.op &
 cd ..
 ```
 
-You can try commenting one of the site's to see its effect on the protocol; the protocol blocks at the partial decryption stage since the sites will wait for the encrypted matrices from all sites to be available.
+Each site's working directory (e.g., *SITE_0_DIR/*) contains the partially decrypted files that the corresponding site partially decrypts and uploads to the shared directory. You can explore which files are written into each site's directory to track the processing order.
 
-This can be simply resolved by starting the site.
+Also, you can simulate a site's disruption by commenting out one of the site's protocol script in the above command (i.e.., *./networked_partial_decryption_example.sh*) to see its effect on the protocol; the protocol blocks at the partial decryption stage since the sites will wait for the encrypted matrices from all sites to be available.
+
+This can be simply resolved by starting the site's procotocol script that was commented out.
 
 ---
 

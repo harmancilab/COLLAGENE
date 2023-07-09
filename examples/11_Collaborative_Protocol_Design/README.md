@@ -49,4 +49,22 @@ done
 # Further processing on the results using the files that are downloaded.
 ```
 
+Note that it is generally a good idea to add error checks after all calls. All *FILE_IO_UTILS.sh* commands should return 0 on success and 1 on an error. After running any of the options, it is generally a good practice to check for errors. For example:
+```
+...
+	echo "matrix_from_${i_producer_site}.enc_processed_by_${i_site}.enc" > files.list
+	./FILE_IO_UTILITIES.sh -upload_files_to_shared data_config.params files.list
+	
+	if [[ $? == 1 ]]
+	then
+		echo "Failed upload of the processed file."
+
+		... Handle error condition; the upload can be retried or an fatal error message can be written ...
+	fi
+
+...
+```
+
+This is implemented in network I/O example script under previous example folder.
+
 __Redundancy of Network I/O__: Above design idea generates redundant network I/O since each producer site downloads its produced files. These cases can be avoided by adding a conditional to make sure the sites do not download/upload their own data. Note that this does not create security concerns; it is only necessary to decrease the network I/O.
