@@ -42,6 +42,7 @@ Also, the DSK encryption keys are very small in size and can be shared using the
 
 After the public DSK encryption keys are retrieved from all sites, these are copied into a folder and archived in a *.tar* file:
 ```
+DSK_ENCRYPTION_KEYS_DIR=CLIENT_DSK_ENCRYPTION_KEYS
 mkdir ${DSK_ENCRYPTION_KEYS_DIR}
 cp *.dsk_enc_public_key ${DSK_ENCRYPTION_KEYS_DIR}
 cp ckks.params ${DSK_ENCRYPTION_KEYS_DIR}
