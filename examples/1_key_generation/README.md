@@ -34,6 +34,8 @@ COLLAGENE.sh -generate_DSK_encryption_key 2
 ```
 Private DSK decryption keys are protected with a password that is asked three times at the command line.
 
+__IMPORTANT:__ The names of the key files should not be modified because they are used by *KeyMaker* while encrypting the key shares. Also, *COLLAGENE.sh* script uses each site's index while decrypting the encrypted key shares from *KeyMaker*.
+
 After DSK encryption keys are generated, each site will share their public key with the site that will initiate the key request. The sharing of the public key does not create any risks since it is only used for encryption.
 
 Also, the DSK encryption keys are very small in size and can be shared using the shared folder.
@@ -89,7 +91,7 @@ tar -xvf DSK_KEYS_FROM_SERVER.tar --strip-components 2 -C RECEIVED_KEYS
 COLLAGENE.sh -decrypt_site_DSK 0 RECEIVED_KEYS
 ```
 
-This command decrypts the key share for site-0. The password for decryption will be asked at the command line and this must match the password provided while DSK encryption key was generated.
+This command decrypts the key share for site-0. DSK decryption key file, e.g., *site_0.dsk_enc_private_key*, must be located in the same directory. The password for decryption will be asked at the command line and this must match the password provided while DSK encryption key was generated.
 
 The received keys directory contains several other common keys (relinearization, Galois, partdec encryption keys) that will be used for executing protocols. It also contains the encrypted key-shares of other sites but they cannot be decrypted by other 3rd sites (each site can only decrypt their own key share).
 
