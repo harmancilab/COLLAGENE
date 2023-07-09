@@ -24,10 +24,13 @@ fi
 chmod 755 *.sh
 
 # The sites must decide on indexing themselves. Site indexing is always done with 0-based indices, i.e., {0,1,..., N_sites-1}.
-# KeyMaker expects to see N_sites many DSK encryption keys that are used to encrypt the key shares for the sites. These encrypted key shares can only be decrypted by the respective site.
-# It is therefore important 
+# KeyMaker expects to see N_sites many DSK encryption keys that are used to encrypt the key shares for the sites. These encrypted 
+# key shares can only be decrypted by the respective site.
+#
 # KeyMaker makes use of 0-based site indexing while encrypting the key shares of the sites.
-# It is, however, necessary to assign a 0-based index to all sites while data are being collectively decrypted.
+# Likewise, after the key share folder is downloaded from KeyMaker, COLLAGENE.sh uses the site index assigned to each site to 
+# match its DSK decryption key to the encrypted keys and decrypt its own key share.
+# Site indexing is also necessary while data are being collectively decrypted.
 # The keys that we generate and setup in this exercise can be re-used in all remaining exercises.
 echo "Using ${N_SITES} sites."
 N_SITES_MIN_ONE=`echo ${N_SITES} | awk {'print $1-1'}`
