@@ -17,6 +17,7 @@ then
 Options:
 	Key Generation:
 		-generate_DSK_encryption_key [Site Index (0-based)]
+		-download_DSK_archive [KeyMaker Folder Identifier] [Local tar file to store the archive]
 		-decrypt_site_DSK [Site Index (0-based)] [Encrypted DSK keys directory]
 		-generate_openssl_hash [Site Index (0-based)]
 	Initialization:
@@ -165,6 +166,85 @@ then
 
 	exit ${res}
 fi
+
+if [[ "${cmd_option}" == "-download_DSK_archive" ]] 
+then
+	if [[ $# -ne 3 ]]
+	then
+		echo "USAGE: $0 $1 [KeyMaker folder identifier] [Key archive tar file name]"
+		exit 1
+	fi
+
+	JSON_awk_script="JSON.awk"
+
+	if [[ ! -f ${JSON_awk_script} ]]
+	then
+		echo "Could not find JSON.awk script, download and copy it from: https://github.com/step-/JSON.awk.git"
+		exit 1
+	fi
+
+	folder_id=$2
+	local_key_tar_file=$3
+
+	echo "Folder ID ${folder_id}: Probing status for key generation.."
+
+	curl -o task_stat_results.json "https://secureomics.org/KeyMaker/Backend/task_upload_utils.php?folder_id=${folder_id}&requested_service=probe_task_progress" >& /dev/null
+
+	awk -f ${JSON_awk_script} task_stat_results.json > ${folder_id}_stat_results.json.tsv
+
+	task_success=`cat ${folder_id}_stat_results.json.tsv | grep success | cut -f2,2`
+
+	if [[ ${task_success} == "true" ]]
+	then
+		echo "Folder ID ${folder_id}: Checking if keys are generated.."		
+
+		task_finished=`cat ${folder_id}_stat_results.json.tsv | grep task_finished | cut -f2,2`
+
+		if [[ ${task_finished} == "true" ]]
+		then
+			echo "Folder ID ${folder_id}: Retrieving DSK archive.."
+
+			curl -o ${folder_id}_task_results.json "https://secureomics.org/KeyMaker/Backend/task_upload_utils.php?folder_id=${folder_id}&requested_service=request_task_results" >& /dev/null
+
+			if [[ ! -f "${folder_id}_task_results.json" ]]
+			then
+				echo "Folder ID ${folder_id}: Could not retrieve keys, you may try again.."
+				exit 1
+			fi
+
+			task_res_success=`awk -f ${JSON_awk_script} ${folder_id}_task_results.json | grep success | cut -f2,2`
+
+			if [[ ${task_res_success} == "true" ]]
+			then
+				download_link=$(awk -f ${JSON_awk_script} ${folder_id}_task_results.json | grep "auth_results_url" | cut -f2,2 | sed 's/\\//g' | sed 's/\"//g')
+
+				echo "Folder ID ${folder_id}: Downloading key archive.."
+				curl -o "${local_key_tar_file}" --progress-bar --remote-name --location "${download_link}"
+
+				if [[ -f "${local_key_tar_file}" ]]
+				then
+					echo "Folder ID ${folder_id}: Downloaded keys successfully; you can unTAR this archive using:"
+					echo "mkdir RECEIVED_KEYS;tar -xvf \"${local_key_tar_file}\" --strip-components 2 -C RECEIVED_KEYS"
+					exit 0
+				else
+					echo "Folder ID ${folder_id}: Download failed for: \"${download_link}\""
+					exit 1
+				fi
+		
+			else
+				echo "Could not parse the results."
+				exit 1
+			fi
+		else # task finish check.
+			echo "Folder ID ${folder_id}: Keys are not generated, yet.."
+			exit 1
+		fi # task finish check.
+	else
+		echo "Folder ID ${folder_id}: Keys are not ready or invalid folder id."
+		exit 1
+	fi
+fi 
+
 
 if [[ "${cmd_option}" == "-decrypt_site_DSK" ]] 
 then
