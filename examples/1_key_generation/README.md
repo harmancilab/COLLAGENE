@@ -6,7 +6,7 @@ Note that sites are numbered in the key-generation setup. The sites need to be a
 There are 4 steps in this example and the script key_generation_example.sh implement these steps in separate options.
 
 ## Setting parameters file *ckks.params*
-CKKS keys are generated specifically for the set of encryption parameters (polynomial modulus, coefficient modulus, etc). 
+CKKS keys are generated specifically for the set of encryption parameters (polynomial modulus, coefficient modulus, etc) that are described in *ckks.params* file. 
 
 It is therefore necessary to agree on setting the CKKS parameters prior to setting up the keys. This requires the sites to know the depth and ciphertext sizes of algorithms.
 
