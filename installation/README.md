@@ -77,7 +77,7 @@ CXX=g++
 ```
 with 
 ```
-CXX=[path to local gcc executable] 
+CXX=[path to local g++ executable] 
 ```
 
 Finally, COLLAGENE can be built by running *make* at the main directory (above *src/*):
