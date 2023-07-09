@@ -6,13 +6,13 @@ Note that sites are numbered in the key-generation setup. The sites need to be a
 There are 4 steps in this example and the script key_generation_example.sh implement these steps in separate options.
 
 ## Setting parameters file *ckks.params*
-Key generation is specific to the CKKs parameters that will be used to execute the analysis, which depends on the algorihm that will be executed.
+CKKS keys are generated specifically for the set of encryption parameters (polynomial modulus, coefficient modulus, etc). 
 
 It is therefore necessary to agree on setting the CKKS parameters prior to setting up the keys. This requires the sites to know the depth and ciphertext sizes of algorithms.
 
-Although the default parameters should be sufficient for many analysis, it may still be necessary to tune them depending on the applications. Example 2 includes a more detailed description of how parameters should be selected.
+Although the default parameters should be sufficient for many analysis, it may still be necessary to tune them depending on the applications. Example 2 (inside folder named *2_parameter_selection/*) includes a more detailed description of how parameters should be selected.
 
-The sites agree on the CKKS parameters and save in the file named *ckks.params*.
+The sites agree on the CKKS parameters and save in the file named *ckks.params*. The default parameters can be used as a starting point.
 
 ## DSK Encryption Key Generation
 Before key generation, the sites generate the keys *DSK encryption keys*, which are used for encrypting the key shares of each site by the KeyMaker. 
