@@ -23,12 +23,11 @@ fi
 #dos2unix *.sh
 chmod 755 *.sh
 
-# Site indexintg is always done with 0-based indices. This is important only for downloading data from other sites but protocol decides on the file names
-# We use 0-based indexing here for naming the local site key folders, which is not necessary. Local sites can setup their keys in any folder. 
-# It is, however, necessary to assign a 0-based index to all sites while protocols are executed.
-# You also do not have to keep N_SITES in data_config.params file. This file is not required by COLLAGENE.sh but it is needed by FILE I/O module. 
-# Site indexing is used to keep track of the sites. The sites need to know their index to make sure the files they upload can be tracked by other sites. 
-# Also, importantly, site indices are needed while collectively decrypting the data.
+# The sites must decide on indexing themselves. Site indexing is always done with 0-based indices, i.e., {0,1,..., N_sites-1}.
+# KeyMaker expects to see N_sites many DSK encryption keys that are used to encrypt the key shares for the sites. These encrypted key shares can only be decrypted by the respective site.
+# It is therefore important 
+# KeyMaker makes use of 0-based site indexing while encrypting the key shares of the sites.
+# It is, however, necessary to assign a 0-based index to all sites while data are being collectively decrypted.
 # The keys that we generate and setup in this exercise can be re-used in all remaining exercises.
 echo "Using ${N_SITES} sites."
 N_SITES_MIN_ONE=`echo ${N_SITES} | awk {'print $1-1'}`
@@ -41,9 +40,14 @@ then
 	echo "Cleaning directory.."
 	rm -f *.txt *.list *.OP *.bin *.enc *.partdec *.dec *_key
 
+	# Either one of the following loops can be used here.
+	#for((i_site=0; i_site<${N_SITES}; i_site++))
 	for i_site in ${site_iters[@]}
 	do
+		# Following option generates an openssl DSK encryption/decryption key pairs for the site with index ${i_site}. It should not be renamed since KeyMaker expects file names to be in certain format.
 		./COLLAGENE.sh -generate_DSK_encryption_key ${i_site}
+
+		## DO NOT CHANGE THE FILES NAMES FOR THESE DSK ENCRYPTION/DECRYPTION KEYS.
 	done
 
 	if [[ ! -f ckks.params ]]
