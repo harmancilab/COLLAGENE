@@ -21,7 +21,7 @@ This option probes the completion of DSK key generation directly from *KeyMaker*
 
 *__Outputs:__* The CKKS DSK archive (tar formatted) is saved if the key generation is completed. Otherwise a message is printed and option returns.
 
-*__Remarks:__* This option is currently experimental and relies on an external library.
+*__Remarks:__* This option is currently experimental and relies on an external library. This option directly interacts with *KeyMaker* and exposes site's IP to *KeyMaker*. If regulations do not allow exposing the IP address, this option should not be used to obtain the key archive. Users should obtain the link to download the DSK archive directly from *KeyMaker* website.
 
 ***
 
