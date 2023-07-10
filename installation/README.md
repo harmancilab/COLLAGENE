@@ -5,8 +5,6 @@ COLLAGENE runs on Linux systems. It requires working installations of *openssl* 
 
 Extensions require *git* and *curl*, which are available in most Linux installations.
 
-In addition, the AWS S3 file transfers requires a configured installation of AWS command line interface: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-
 ## Steps to build COLLAGENE
 
 ### Source Code
@@ -94,6 +92,12 @@ For the current bash session, you can set the PATH variable using:
 export PATH=$PATH:${PWD}/bin
 ```
 
+## Network Setup 
+
+COLLAGENE's network I/O uses SCP and AWS transfers. More details on setting these up can be found under *examples/10_Network_File_IO/* example folder.
+
+__Note__: Local folders can be used for testing, development, and debugging purposes without any requirement of configuration. This can be done by setting the local folder usage option in the configuration file for *FILE_IO_UTILS.sh* script.
+
 ## Docker Usage
 In case your environment does not support installation of COLLAGENE, you can use the preset COLLAGENE image, in which you can setup the code.
 
@@ -116,7 +120,11 @@ yum -y install gcc10-c++
 ```
 This version of cmake should install a version greater than 3.13 and can be used to install SEAL-4.0. After installing the SEAL library, you can build COLLAGENE executable using above commands under the main directory. Please make sure to set the g++ version in the Makefile that was used to build SEAL library.
 
-Note that container has preinstalled AWS cli interface but it must be configured with user's keys before it can be used. Container should also have an R-4.2 installation.
+Note that container has preinstalled AWS command line interface but it must be configured with user's keys before it can be used. 
+
+More information about configuring AWS client can be found here: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
+
+Container should also have an R-4.2 installation.
 
 # Running COLLAGENE
 After COLLAGENE is installed, the best place to start is to go over the *Examples/* folder that contains tutorials starting from key generation and collaborative analysis examples.
