@@ -21,7 +21,19 @@ COLLAGENE supports 3 options for file I/O:
 	
 	# Replace "user_id" and "127.0.0.1" with username and server address.
 
-<li> AWS S3 storage: Data is stored at an S3 bucket. It is necessary to setup the S3 bucket to transfer data to the bucket. The sites must have access to the bucket with write/read permissions. AWS CLI must be configured at each site (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).</li> 
+<li> AWS S3 storage: Data is stored at an S3 bucket. It is necessary to setup the S3 bucket to transfer data to the bucket. The sites must have access to the bucket with write/read permissions. AWS CLI must be configured at each site for accessing the bucket (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).</li> 
+
+	# First, download the aws command line tool: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html and install it:
+	curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+	unzip awscliv2.zip
+	./aws/install -i aws_installation_dir -b aws_exe_dir
+
+	# After installation completes, you can configure AWS client using credentials:
+	aws_exe_dir/aws configure	
+	AWS Access Key ID [*******************]: [Enter key]
+	...
+
+	# Note that none of this information is stored or accessed by COLLAGENE's scripts or KeyMaker.
 </ol>
 
 There are examples of using these options in *network_file_io_example.sh* script. This script help setup the basic functions. Also, *API/* directory contains the documentation for the options that *FILE_IO_UTILS.sh* implements.
