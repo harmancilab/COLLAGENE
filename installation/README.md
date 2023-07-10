@@ -124,17 +124,21 @@ Note that container has preinstalled AWS command line interface but it must be c
 
 More information about configuring AWS client can be found here: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
 
-Container should also have an R-4.2 installation.
+Container should also have an R-4.2 installation and gcc10 installation (gcc10-c++).
 
 # Running COLLAGENE
 After COLLAGENE is installed, the best place to start is to go over the *Examples/* folder that contains tutorials starting from key generation and collaborative analysis examples.
 
-Note that if COLLAGENE_Release executable in your path, you need to set following entry in "data_config.params":
+You can use the executable (*bin/COLLAGENE_Release*) or the driver script (*scripts/COLLAGENE.sh*) to use COLLAGENE's functions.
+
+Note that if *COLLAGENE_Release* executable is not in your *PATH*, you need to set following entry in "data_config.params":
 ```
 COLLAGENE_SECURE_EXEC=[Path to COLLAGENE executable under bin/ directory]
 ```
-This file is used by FILE_IO_UTILS.sh, to set some of the configuration information.
+This file is used by *FILE_IO_UTILS.sh* to define networking interface. It is not explicitly needed by *COLLAGENE.sh*
 
-There is also a similar line at the beginning of COLLAGENE.sh script, which should be modified if COLLAGENE binary executable is not visible under PATH variable.
+There is also a similar line at the beginning of *COLLAGENE.sh* script, which should be modified if COLLAGENE binary executable is not visible under *PATH* variable. 
+
+If *COLLAGENE_Release* is not found by any of these scripts, they should issue an error and exit.
 
  
