@@ -40,9 +40,9 @@ Documentation for the options that can be used in secure pipelines can be found 
 ## How do I build new collaborative analysis pipelines with COLLAGENE?
 As with any new tool development, Any pipeline that will be implemented in a collaborative/federated setting must be first formulated so that it can be implemented with COLLAGENE's existing modules.
 
-Thus it is necessary for developers to convert their implementations into blocks of modules that can be implemented using COLLAGENE's tools. However, most of the security concerns can be thwarted using the implementations in COLLAGENE. 
+Thus it is necessary for developers to convert their implementations into blocks of modules that can be implemented using COLLAGENE's tools. *Examples/* and *use_cases/* include numerous demonstrations of how these modules can be developed among a number of collaborators.
 
-It is, however, important to not share any individual level data (even when they are encrypted), use masking of aggregated datasets when they are decrypted as intermediate datasets.
+It is important to not share any individual level data (even when they are encrypted), use masking of aggregated datasets when they are decrypted as intermediate datasets.
 
 We are currently working on providing further recommendations for secure pipeline development for different types of analyses.
 
