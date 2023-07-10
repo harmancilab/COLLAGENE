@@ -111,14 +111,17 @@ sudo docker pull secureomics/${project_id}:${image_tag}
 sudo docker run --name COLLAGENE_client_app -v $PWD:/host -i -t secureomics/${project_id}:${image_tag} /bin/bash
 ```
 
-This should start the docker container. You can install cmake and gcc-10 using 
+This should start the docker container. You can install cmake and gcc-10 using following:
 ```
 yum -y install cmake3
 yum -y install gcc10.x86_64
 yum -y install gcc10-c++
-
+yum -y bzip2
 ```
-This version of cmake should install a version greater than 3.13 and can be used to install SEAL-4.0. After installing the SEAL library, you can build COLLAGENE executable using above commands under the main directory. Please make sure to set the g++ version in the Makefile that was used to build SEAL library.
+
+This version of cmake should install a version greater than 3.13 and can be used to install SEAL-4.0. 
+
+After installing the SEAL library, you can build COLLAGENE executable using above commands under the main directory. Please make sure to set the g++ version in the Makefile that was used to build SEAL library.
 
 Note that container has preinstalled AWS command line interface but it must be configured with user's keys before it can be used. 
 
