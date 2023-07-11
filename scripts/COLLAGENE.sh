@@ -23,6 +23,7 @@ Options:
 	Initialization:
 		-set_params [Text parameters path] [Public key path] [Relin. key path] [Galois key path] [Site's secret key share path] [Parameter directory]
 		-validate_ckks_text_params [Parameter directory] [Validity output file]
+		-validate_param_directory [Parameter directory]
 	Secure Matrix Operations:
 		-encrypt_plaintext_matrix [Parameter directory] [Plaintext matrix path] [Output matrix path]
 		-full_decrypt_encrypted_matrix [Parameter directory] [Encrypted matrix path] [Output matrix path]
@@ -91,54 +92,93 @@ then
 	exit 1
 fi
 
-if [[ "${cmd_option}" == "-validate_params_dir" ]]
+
+if [[ "${cmd_option}" == "-validate_directory_exists" ]] 
 then
 	if [[ $# != 2 ]]
 	then
-		echo "$0 $1 [Parameters directory]"
+		echo "USAGE: $0 $1 [directory path]"
 		exit 1
 	fi
 
-	params_dir=$2
-	
-	if [[ ! -d ${params_dir} ]]
-	then
-		echo "Could not find ${params_dir}"
-		exit 1
-	fi
+	dir_path=$2
 
-	if [[ ! -f ${params_dir}/${TEXT_PARAMS_PATH} ]]
+	if [[ ! -d ${dir_path} ]]
 	then
-		echo "Could not find text params under ${params_dir}/"
-		exit 1
-	fi
-
-	if [[ ! -f ${params_dir}/${PUBLIC_KEY_FILE} ]]
-	then
-		echo "Could not find public key under ${params_dir}/"
-		exit 1
-	fi
-	
-	if [[ ! -f ${params_dir}/${RELIN_KEY_FILE} ]]
-	then
-		echo "Could not find relinearization keys under ${params_dir}/"
-		exit 1
-	fi
-
-	if [[ ! -f ${params_dir}/${GALOIS_KEY_FILE} ]]
-	then
-		echo "Could not find Galois keys under ${params_dir}/"
-		exit 1
-	fi
-
-	if [[ ! -f ${params_dir}/${PRIVATE_KEY_FILE} ]]
-	then 
-		echo "Could not find site private key under ${params_dir}/"
+		echo "Could not find: ${dir_path}"
 		exit 1
 	fi
 
 	exit 0
 fi
+
+if [[ "${cmd_option}" == "-validate_file_exists" ]] 
+then
+	if [[ $# != 2 ]]
+	then
+		echo "USAGE: $0 $1 [file path]"
+		exit 1
+	fi
+
+	file_path=$2
+
+	if [[ ! -f ${file_path} ]]
+	then
+		echo "Could not find: ${file_path}"
+		exit 1
+	fi
+
+	exit 0
+fi
+
+if [[ "${cmd_option}" == "-validate_param_directory" ]] 
+then
+	if [[ $# != 2 ]]
+	then
+		echo "USAGE: $0 $1 [Parameter directory]"
+		exit 1
+	fi
+
+	params_dir=$2
+
+	if [[ ! -d "${params_dir}" ]]
+	then
+		echo "Could not find parameter directory @ ${params_dir}"
+		exit 1
+	fi
+
+	if [[ ! -f "${params_dir}/${TEXT_PARAMS_PATH}" ]]
+	then
+		echo "Could not find ckks parameters @ ${params_dir}/${TEXT_PARAMS_PATH}"
+		exit 1
+	fi
+
+	if [[ ! -f "${params_dir}/${PUBLIC_KEY_FILE}" ]]
+	then
+		echo "Could not find public key @ ${params_dir}/${PUBLIC_KEY_FILE}"
+		exit 1
+	fi
+
+	if [[ ! -f "${params_dir}/${RELIN_KEY_FILE}" ]]
+	then
+		echo "Could not find relin. key @ ${params_dir}/${RELIN_KEY_FILE}"
+		exit 1
+	fi
+
+	if [[ ! -f "${params_dir}/${GALOIS_KEY_FILE}" ]]
+	then
+		echo "Could not find Galois key @ ${params_dir}/${GALOIS_KEY_FILE}"
+		exit 1
+	fi
+
+	if [[ ! -f "${params_dir}/${PRIVATE_KEY_FILE}" ]]
+	then
+		echo "Could not find DSK @ ${params_dir}/${PRIVATE_KEY_FILE}"
+		exit 1
+	fi
+
+	exit 0
+fi # validate_param_directory
 
 
 if [[ "${cmd_option}" == "-generate_DSK_encryption_key" ]]
@@ -389,7 +429,6 @@ then
 	echo "Done, you can use params_dir=${PWD}/${params_dir} for calculations."
 fi
 
-
 if [[ "${cmd_option}" == "-encrypt_plaintext_matrix" ]] 
 then
 	if [[ $# != 4 ]]
@@ -401,6 +440,19 @@ then
 	params_dir=$2
 	plaintext_matrix_file=$3
 	enc_matric_file=$4
+
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${plaintext_matrix_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -continuous_encrypt_data_matrix ${plaintext_matrix_file} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${enc_matric_file}
 
@@ -420,6 +472,26 @@ if [[ $# != 4 ]]
 	enc_matric_file=$4
 	plaintext_matrix_file=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${master_key_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matric_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+
 	#-full_decrypt_encrypted_matrix [Parameter directory] [Encrypted matrix path] [Output matrix path]
 	${COLLAGENE_SECURE_EXEC} -fully_decrypt_continuous_encrypted_matrix ${enc_matric_file} ${params_dir}/${TEXT_PARAMS_PATH} ${master_key_file} ${plaintext_matrix_file}
 
@@ -437,6 +509,19 @@ then
 	params_dir=$2
 	enc_matric_file=$3
 	enc_trans_matrix_file=$4
+
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matric_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -transpose_continuous_encrypted_vector ${enc_matric_file} ${params_dir}/${TEXT_PARAMS_PATH} ${enc_trans_matrix_file}
 
@@ -456,6 +541,25 @@ then
 	matB_row_exp_dir=$4
 	enc_mult_matrix_file=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_directory_exists ${matA_col_exp_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_directory_exists ${matB_row_exp_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -secure_multiply_matrices_Acol_Brow_expansions ${matA_col_exp_dir} ${matB_row_exp_dir} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${params_dir}/${RELIN_KEY_FILE} ${params_dir}/${GALOIS_KEY_FILE} ${params_dir}/${PRIVATE_KEY_FILE} ${enc_mult_matrix_file}
 
 	exit $?
@@ -473,6 +577,31 @@ then
 	plaintext_matrix_file=$3
 	n_rows_in_expansions=$4
 	enc_row_expansion_dir=$5
+
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${plaintext_matrix_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	if [[ ${n_rows_in_expansions} -eq 0 ]]
+	then
+		echo "Must enter positive # of rows in expansion."
+		exit 1
+	fi
+
+	$0 -validate_directory_exists ${enc_row_expansion_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -row_expand_dense_encrypt_matrix ${plaintext_matrix_file} ${n_rows_in_expansions} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${enc_row_expansion_dir}
 
@@ -492,6 +621,31 @@ then
 	n_rows_in_expansions=$4
 	enc_row_expansion_dir=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${encrypted_matrix_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	if [[ ${n_rows_in_expansions} -eq 0 ]]
+	then
+		echo "Must enter positive # of rows in expansion."
+		exit 1
+	fi
+
+	$0 -validate_directory_exists ${enc_row_expansion_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -row_expand_continuous_encrypted_matrix ${encrypted_matrix_file} ${n_rows_in_expansions} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${params_dir}/${RELIN_KEY_FILE} ${params_dir}/${GALOIS_KEY_FILE} ${params_dir}/${PRIVATE_KEY_FILE} ${enc_row_expansion_dir}
 
 	exit $?
@@ -508,9 +662,34 @@ then
 	params_dir=$2
 	plaintext_matrix_file=$3
 	n_cols_in_expansions=$4
-	enc_row_expansion_dir=$5
+	enc_col_expansion_dir=$5
 
-	${COLLAGENE_SECURE_EXEC} -col_expand_dense_encrypt_matrix ${plaintext_matrix_file} ${n_cols_in_expansions} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${enc_row_expansion_dir}
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${plaintext_matrix_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	if [[ ${n_cols_in_expansions} -eq 0 ]]
+	then
+		echo "Must enter positive # of columns in expansion."
+		exit 1
+	fi
+
+	$0 -validate_directory_exists ${enc_col_expansion_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	${COLLAGENE_SECURE_EXEC} -col_expand_dense_encrypt_matrix ${plaintext_matrix_file} ${n_cols_in_expansions} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${enc_col_expansion_dir}
 
 	exit $?
 fi
@@ -526,6 +705,13 @@ then
 	params_dir=$2
 	col_exp_dirs_list_file=$3
 	pooled_col_exp_dir=$4
+
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
 
 	if [[ ! -f ${col_exp_dirs_list_file} ]]
 	then
@@ -610,6 +796,13 @@ then
     params_dir=$2
     row_exp_dirs_list_file=$3
     pooled_row_exp_dir=$4
+
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
 
 	if [[ ! -f ${row_exp_dirs_list_file} ]]
 	then
@@ -696,6 +889,25 @@ then
 	enc_matB_file=$4
 	res_matrix_file=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matB_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -secure_row2row_inner_prod_continuous_encrypted_matrices ${enc_matA_file} ${enc_matB_file} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${params_dir}/${RELIN_KEY_FILE} ${params_dir}/${GALOIS_KEY_FILE} NO_POOLED_KEY ${res_matrix_file}
 
 	exit $?
@@ -714,7 +926,7 @@ then
 	enc_matB_file=$4
 	res_matrix_file=$5
 
-	$0 -validate_params_dir ${params_dir}
+	$0 -validate_param_directory ${params_dir}
 	validate_res=$?
 	if [[ ${validate_res} != 0 ]]
 	then
@@ -751,6 +963,25 @@ then
 	enc_matB_file=$4
 	res_matrix_file=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matB_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -secure_add_cont_ct_matrices ${enc_matA_file} ${enc_matB_file} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${params_dir}/${RELIN_KEY_FILE} ${params_dir}/${GALOIS_KEY_FILE} ${params_dir}/${PRIVATE_KEY_FILE} ${res_matrix_file}
 
 	exit $?
@@ -767,6 +998,19 @@ then
 	params_dir=$2
 	mat_list_file=$3
 	res_matrix_file=$4
+
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${mat_list_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -secure_add_cont_ct_matrices_per_list ${mat_list_file} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${params_dir}/${RELIN_KEY_FILE} ${params_dir}/${GALOIS_KEY_FILE} ${params_dir}/${PRIVATE_KEY_FILE} ${res_matrix_file}
 
@@ -786,6 +1030,25 @@ then
 	enc_matB_file=$4
 	res_matrix_file=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matB_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -secure_sub_cont_ct_matrices ${enc_matA_file} ${enc_matB_file} ${params_dir}/${TEXT_PARAMS_PATH} ${params_dir}/${PUBLIC_KEY_FILE} ${params_dir}/${RELIN_KEY_FILE} ${params_dir}/${GALOIS_KEY_FILE} ${params_dir}/${PRIVATE_KEY_FILE} ${res_matrix_file}
 
 	exit $?
@@ -803,6 +1066,19 @@ then
 	enc_matA_file=$3
 	matrix_dim_file=$4
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -write_enc_matrix_dimensions ${enc_matA_file} ${matrix_dim_file}
 
 	exit $?
@@ -819,8 +1095,15 @@ then
 	params_dir=$2
 	param_valid_op_fp=$3
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		echo "Could not validate parameters directory @ ${params_dir}"
+		exit 1
+	fi
+
 	# First, validate the parameters directory.
-	$0 -validate_params_dir ${params_dir}
+	$0 -validate_param_directory ${params_dir}
 	validate_res=$?
 	if [[ ${validate_res} != 0 ]]
 	then
@@ -851,7 +1134,7 @@ then
 		exit 1
 	fi
 
-	$0 -validate_params_dir ${params_dir}
+	$0 -validate_param_directory ${params_dir}
 	validate_res=$?
 	if [[ ${validate_res} != 0 ]]
 	then
@@ -884,7 +1167,7 @@ then
 		exit 1
 	fi
 
-	$0 -validate_params_dir ${params_dir}
+	$0 -validate_param_directory ${params_dir}
 	validate_res=$?
 	if [[ ${validate_res} != 0 ]]
 	then
@@ -919,7 +1202,7 @@ then
 	fulldec_file=$4
 
 	# First, validate the params directory.
-	$0 -validate_params_dir ${params_dir}
+	$0 -validate_param_directory ${params_dir}
 	validate_res=$?
 	if [[ ${validate_res} != 0 ]]
 	then
@@ -951,6 +1234,24 @@ then
 	openssl_hash_file=$4
     output_file=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${partdec_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${openssl_hash_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	openssl enc -aes-256-cbc -in ${partdec_file} -out ${output_file} -pass file:${openssl_hash_file}
 	exit $?
 fi
@@ -967,6 +1268,24 @@ then
     enc_partdec_file=$3
 	openssl_hash_file=$4
     output_file=$5
+
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_partdec_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${openssl_hash_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	openssl enc -d -aes-256-cbc -in ${enc_partdec_file} -out ${output_file} -pass file:${openssl_hash_file}
 	exit $?
@@ -986,6 +1305,18 @@ then
 	mask_sigma=$4
 	plaintext_mask_matrix_file=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -generate_plaintext_mask_per_continuous_encrypted_data ${matA_file} ${mask_sigma} ${plaintext_mask_matrix_file}
 
 	exit $?
@@ -1004,6 +1335,24 @@ then
 	enc_mask_matrix_file=$4
 	masked_enc_matrix_file=$5
 
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_mask_matrix_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -additive_mask_continuous_encrypted_data ${matA_file} ${enc_mask_matrix_file} ${params_dir}/${TEXT_PARAMS_PATH} ${masked_enc_matrix_file}
 
 	exit $?
@@ -1021,6 +1370,24 @@ then
 	enc_matA_file=$3
 	enc_mask_matrix_file=$4
 	masked_enc_matrix_file=$5
+
+	$0 -validate_param_directory ${params_dir}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${enc_mask_matrix_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -additive_unmask_continuous_encrypted_data ${enc_matA_file} ${enc_mask_matrix_file} ${params_dir}/${TEXT_PARAMS_PATH} ${masked_enc_matrix_file}
 
@@ -1095,6 +1462,12 @@ then
 	scalar_multiplier_value=$3
 	op_pt_matrix_fp=$4
 
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -scalar_multiply_matrix_plain ${plaintext_matA_file} ${scalar_multiplier_value} ${op_pt_matrix_fp}
 
 	exit $?
@@ -1111,6 +1484,12 @@ then
 	plaintext_matA_file=$2
 	op_pt_matrix_fp=$3
 
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -plain_invert_matrix ${plaintext_matA_file} ${op_pt_matrix_fp}
 
 	exit $?
@@ -1126,6 +1505,12 @@ then
 
 	plaintext_matA_file=$2
 	op_pt_matrix_fp=$3
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -transpose_pt_matrix ${plaintext_matA_file} ${op_pt_matrix_fp}
 	
@@ -1144,6 +1529,18 @@ then
 	plaintext_matB_file=$3
 	op_pt_matrix_fp=$4
 
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${plaintext_matB_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -multiply_matrices_pt ${plaintext_matA_file} ${plaintext_matB_file} ${op_pt_matrix_fp}
 	
 	exit $?
@@ -1160,6 +1557,18 @@ then
 	plaintext_matA_file=$2
 	plaintext_matB_file=$3
 	op_pt_matrix_fp=$4
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${plaintext_matB_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -multiply_matrices_elementwise_pt ${plaintext_matA_file} ${plaintext_matB_file} ${op_pt_matrix_fp}
 	
@@ -1178,6 +1587,18 @@ then
 	plaintext_matB_file=$3
 	op_pt_matrix_fp=$4
 
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${plaintext_matB_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -row2row_multiply_pt ${plaintext_matA_file} ${plaintext_matB_file} ${op_pt_matrix_fp}
 	
 	exit $?
@@ -1195,12 +1616,22 @@ then
 	plaintext_matB_file=$3
 	op_pt_matrix_fp=$4
 
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${plaintext_matB_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -plain_sub_matrices ${plaintext_matA_file} ${plaintext_matB_file} ${op_pt_matrix_fp}
 	
 	exit $?
 fi
-
-
 
 if [[ "${cmd_option}" == "-add_plaintext_matrix" ]] 
 then
@@ -1213,6 +1644,18 @@ then
 	plaintext_matA_file=$2
 	plaintext_matB_file=$3
 	op_pt_matrix_fp=$4
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
+	$0 -validate_file_exists ${plaintext_matB_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -plain_add_matrices ${plaintext_matA_file} ${plaintext_matB_file} ${op_pt_matrix_fp}
 	
@@ -1230,6 +1673,12 @@ then
 	plaintext_matrix_list_file=$2
 	op_pt_matrix_fp=$3
 
+	$0 -validate_file_exists ${plaintext_matrix_list_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -plain_add_matrices_per_list ${plaintext_matrix_list_file} ${op_pt_matrix_fp}
 	
 	exit $?
@@ -1245,6 +1694,12 @@ then
 
 	plaintext_matA_file=$2
 	op_pt_matrix_fp=$3
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -plain_pad_matrix_to_next_power_of_2 ${plaintext_matA_file} ${op_pt_matrix_fp}
 	
@@ -1262,6 +1717,12 @@ then
 	plaintext_matA_file=$2
 	op_pt_matrix_fp=$3
 
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -plain_pad_matrix_rows_to_next_power_of_2 ${plaintext_matA_file} ${op_pt_matrix_fp}
 	
 	exit $?
@@ -1277,6 +1738,12 @@ then
 
 	plaintext_matA_file=$2
 	op_pt_matrix_fp=$3
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -plain_pad_matrix_cols_to_next_power_of_2 ${plaintext_matA_file} ${op_pt_matrix_fp}
 	
@@ -1296,6 +1763,12 @@ then
 	n_cols=$4
 	op_pt_matrix_fp=$5
 
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
+
 	${COLLAGENE_SECURE_EXEC} -plain_unpad_matrix_to_size ${plaintext_matA_file} ${n_rows} ${n_cols} ${op_pt_matrix_fp}
 	
 	exit $?
@@ -1311,6 +1784,12 @@ then
 
 	plaintext_matA_file=$2
 	op_file=$3
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 	
 	${COLLAGENE_SECURE_EXEC} -dump_matrix_plain ${plaintext_matA_file} ${op_file}
 
@@ -1328,6 +1807,12 @@ then
 	plaintext_matA_file=$2
 	function_type=$3
 	op_file=$4
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 	
 	${COLLAGENE_SECURE_EXEC} -transform_elementwise_per_callback_pt ${plaintext_matA_file} ${function_type} ${op_file}
 
@@ -1346,6 +1831,12 @@ then
 	row_ids_in_input=$3
 	col_ids_in_input=$4
 	op_file=$5
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 	
 	${COLLAGENE_SECURE_EXEC} -save_matrix_plain_2_bin ${plaintext_matA_file} ${row_ids_in_input} ${col_ids_in_input} ${op_file}
 
@@ -1362,6 +1853,12 @@ then
 
 	plaintext_matA_file=$2
 	plain_mat_dims_file=$3
+
+	$0 -validate_file_exists ${plaintext_matA_file}
+	if [[ $? -eq 1 ]]
+	then
+		exit 1
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -write_plain_matrix_dimensions ${plaintext_matA_file} ${plain_mat_dims_file}
 

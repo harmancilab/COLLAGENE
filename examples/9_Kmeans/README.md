@@ -17,7 +17,7 @@ We modify the general K-means with a weighted version where each point is "softl
 ```
 w(a_i, c_j)=exp(-|a_i-c_j|^2/5)
 ```
-Next, we update the jth centroid using by weighting the coordinates of all points:
+Next, we update the jth centroid after weighting the coordinates of all points:
 ```
 c_j=\sum_i w(a_i, c_j).a_i / \sum_i w(a_i, c_j)
 ```

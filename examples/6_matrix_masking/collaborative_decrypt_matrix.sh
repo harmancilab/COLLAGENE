@@ -15,7 +15,7 @@ site_iters=`seq 0 ${n_sites_min_one}`
 rm -f ${enc_matrix_file}_partdec_by_*.partdec
 for decrypting_i_site in ${site_iters[@]}
 do
-	echo "Partially decrypting ${i_site}.'s data matrix by site-${decrypting_i_site}.."
+	echo "Partially decrypting ${enc_matrix_file} by site-${decrypting_i_site}.."
 	smdg_noise_var_bit_size=0
 	./COLLAGENE.sh -partial_decrypt_matrix SITE_${decrypting_i_site} ${enc_matrix_file} ${decrypting_i_site} ${smdg_noise_var_bit_size} ${enc_matrix_file}_partdec_by_${decrypting_i_site}.partdec
 done
