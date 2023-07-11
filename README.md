@@ -14,17 +14,17 @@ Please follow the instructions under *installation/* for building the executable
 COLLAGENE provides three main components that can be used for building collaborative data analysis pipelines.
 
 ### 1) Key Generation, encryption, collective decryption, ciphertext vitals, and masking of encrypted data:
-KeyMaker is a cloud-based service that is used for generating and sharing secret keys among collaborating sites. It can be accessed [here](https://www.secureomics.org/KeyMaker). This step simplifies key-generation step. As KeyMaker is central for generation of the keys, sites must trust the KeyMaker service. It should be noted that KeyMaker does not take part in data processing steps and the keys can be used in local settings without any more interaction with KeyMaker after they are generated.
+*KeyMaker* is a cloud-based service that is used for generating and sharing secret keys among collaborating sites. It can be accessed [here](https://www.secureomics.org/KeyMaker). As *KeyMaker* is central for generation of the keys, sites must trust the *KeyMaker* service. It should be noted that KeyMaker does not take part in data processing steps and the keys can be used in local settings without any more interaction with KeyMaker after they are generated.
 
 COLLAGENE provides the tools to encrypt and collectively decrypt data matrices (e.g., genotypes, phenotypes, covariates), modules to keep track of the ciphertext information and security level (128-bits) that are important to ensure that they can be operated on.
 
 Usage examples of these tools are included under *examples/* directory.
 
 ### 2) Networking and File I/O:
-COLLAGENE's current approach is based on exchanging data among sites using file transfers. The networking and file I/O simplifies online computation requirements where sites can perform local computations. We provide a template script that provides the basic functionalities for performing network file I/O using SCP protocol or via AWS buckets. 
+COLLAGENE's current approach is based on exchanging data among sites using file transfers. The networking and file I/O simplifies online computation requirements where sites can perform local computations. We provide a template script that perform the basic functionalities of network file I/O using SCP protocol or via AWS buckets. 
 
 ### 3) Matrix Processing Library:
-COLLAGENE provides a suite of plaintext and encrypted matrix processing tools that can be used to perform matrix operations such as matrix arithmetic.
+COLLAGENE provides a suite of plaintext and encrypted matrix processing tools that can be used to do secure matrix arithmetic and manipulation.
 
 As majority of the methods in bioinformatics rely on extensive matrix operations, the matrix library establishes a basic set of tools that can be used for processing small-to-medium sizes matrices.
 
@@ -32,7 +32,7 @@ As majority of the methods in bioinformatics rely on extensive matrix operations
 We provide examples of using key-setup, encryption/decryption, matrix library, network file I/O (and others) under *examples/* directory. These examples demonstrate the basic blocks for building more complex collaborative analysis pipelines.
 
 ## Use Cases:
-We provide a full implementation of federated GWAS and meta-analysis for binary traits under *use_cases/* directory. The implementation includes all components that can be readily deployed. A public docker image is provided to install and test these implementations (See *installation/* and *docker/* for more details.).
+We provide a full implementations of federated GWAS and meta-analysis for binary traits under *use_cases/* directory. The implementation includes all components that can be readily deployed. A public docker image is provided to install and test these implementations (See *installation/* and *docker/* for more details.).
 
 ## API and CLI Documentation
 Documentation for the options that can be used in secure pipelines can be found under *API/* directory.
