@@ -32,7 +32,13 @@ Decreasing the intermediate values (40 bits) provides a good balance for the pre
 
 Increasing the number of entries in the coefficient modulus bit array enables evaluation of functions with more consecutive multiplications but they decrease the security, dependent on the polynomial degree modulus.
 
-COLLAGENE.sh can be used to check if the selection of polynomial degree modulus and coefficient modulus decomposition bit size vector is valid under 128-bit security.
+The total number of bit number of bits used in decomposition specifies the coefficient modulus (*q*). In the above example, total bit count of *log(q)* is:
+
+```
+60+40+40+40+40+40+40+60=360 bits 
+```
+
+*COLLAGENE.sh* can be used (option *-validate_ckks_text_params*) to check if the selection of polynomial degree modulus and coefficient modulus decomposition bit size vector is valid under 128-bit security defined under Homomorphic Encryption Standard white paper (*https://eprint.iacr.org/2019/939.pdf*). 
 
 ## CKKS Scale
 CKKS scale should be chosen close to the intermediate values (40-bits in the example) of the coefficient modulus bit size vector to make sure scaling of the numbers match the decomposition while we perform multiplication and relinearize ciphertexts.
