@@ -11,9 +11,7 @@ For extensive discussion about Motivation and Overview, please see *Docs/*.
 Please follow the instructions under *installation/* for building the executables, setting up the environment, and running COLLAGENE through docker. 
 
 ## Main Components of Analysis by COLLAGENE
-COLLAGENE provides number of components that can be used for building collaborative data analysis pipelines. 
-
-COLLAGENE is built around 3 components.
+COLLAGENE provides three main components that can be used for building collaborative data analysis pipelines.
 
 ### 1) Key Generation, encryption, collective decryption, ciphertext vitals, and masking of encrypted data:
 KeyMaker is a cloud-based service that is used for generating and sharing secret keys among collaborating sites. It can be accessed [here](https://www.secureomics.org/KeyMaker). This step simplifies key-generation step. As KeyMaker is central for generation of the keys, sites must trust the KeyMaker service. It should be noted that KeyMaker does not take part in data processing steps and the keys can be used in local settings without any more interaction with KeyMaker after they are generated.
