@@ -92,3 +92,11 @@ These should have started 3 processes that run each client's commands. If you do
 This option searches for COLLAGENE processes and tries to stop them. After this command ends, you should ensure all processes ended before starting the protocol again.
 
 11) Final results are written to a tab-delimited file in each site's working directory, e.g., *FINAL_P_VALUES_ALL_VAR_BLOCKS_CLIENT_0_PER_R_w_var_ids.txt*
+
+
+## Optimizations to Protocol
+This protocol aims at providing an example of using COLLAGENE's modules. It is not optimized in numerous aspects, especially in terms of the redundancy in processing variant blocks. 
+
+For instance, there are a large number of optimizations that can be attained by dividing the p-value statistic pooling of variant blocks among sites, which is the slowest portion of the algorithm. Currently, each site calculates pooled S/T statistics for every variant block (with two costly row-row multiplications), which is redundant since all sites do the same calculation at the same time. This step can be divided among sites (e.g., each block's S/T statistics are pooled by only one site) to decrease network usage and the time requirements. Also, numerous matrix pooling steps and independent matrix multiplications (e.g., S and T calculations are independent) can be performed in parallel.
+
+We leave the implemention of an optimized version of this algorithm with easy deployment options to future work.
