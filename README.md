@@ -31,7 +31,7 @@ As majority of the methods in bioinformatics rely on extensive matrix operations
 ## Usage Examples for Different Components
 We provide examples of using key-setup, encryption/decryption, matrix library, network file I/O (and others) under *examples/* directory. These examples demonstrate the basic blocks for building more complex collaborative analysis pipelines.
 
-## Use Cases:
+## Use Cases
 We provide a full implementations of federated GWAS and meta-analysis for binary traits under *use_cases/* directory. The implementation includes all components that can be readily deployed. A public docker image is provided to install and test these implementations (See *installation/* and *docker/* for more details.).
 
 ## API and CLI Documentation
