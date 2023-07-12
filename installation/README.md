@@ -123,7 +123,7 @@ This version of cmake should install a version greater than 3.13 and can be used
 
 After installing the SEAL library, you can build COLLAGENE executable using above commands under the main directory. Please make sure to set the g++ version in the Makefile that was used to build SEAL library.
 
-Note that container has preinstalled AWS command line interface but it must be configured with user's keys before it can be used. 
+Note that container has preinstalled AWS command line interface but it must be configured with user's credentials before it can be used. 
 
 More information about configuring AWS client can be found here: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
 
