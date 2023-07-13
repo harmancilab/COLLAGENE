@@ -234,6 +234,8 @@ then
 		last_ret=$?
 		exit ${last_ret}
 	fi
+
+	exit 0
 fi
 
 if [[ ${cmd_option} == "-probe_files_in_shared" ]]
