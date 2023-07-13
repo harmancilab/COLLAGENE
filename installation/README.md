@@ -136,9 +136,9 @@ You can use the executable (*bin/COLLAGENE_Release*) or the driver script (*scri
 
 __IMPORTANT__: If *bin/COLLAGENE_Release* executable is not visible in the directories listed in your *PATH* variable, you need to set following entry in *COLLAGENE.sh* script:
 ```
-COLLAGENE_SECURE_EXEC=[Path to COLLAGENE executable under bin/ directory]
+COLLAGENE_SECURE_EXEC=[Path to COLLAGENE_Release executable under bin/ directory]
 ```
 
-If *COLLAGENE_Release* is not found by any *COLLAGENE.sh*, it issues an error and exit.
+If *COLLAGENE_Release* is not found by *COLLAGENE.sh*, it issues an error and exit.
 
  
