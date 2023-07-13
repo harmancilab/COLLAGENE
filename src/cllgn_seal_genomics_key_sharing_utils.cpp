@@ -1516,9 +1516,12 @@ void generate_share_private_keys(int n_sites, char* text_params_path,
 
 	// This is the main pooled secret key that should be protected, noone will have access to this key after running key generation.
 	SecretKey pooled_sk = pooled_keygen.secret_key();
-	ofstream ofs_original_sk("pooled.secret_key", ios::binary);
-	pooled_sk.save(ofs_original_sk);
-	ofs_original_sk.close();
+	if (perform_key_testing)
+	{
+		ofstream ofs_original_sk("pooled.secret_key", ios::binary);
+		pooled_sk.save(ofs_original_sk);
+		ofs_original_sk.close();
+	}
 
 	// Generate the pooled public, relin, and galois keys and save them.
 	fprintf(stderr, "Generating public, relin, and galois keys and saving.\n");

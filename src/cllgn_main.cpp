@@ -1463,7 +1463,7 @@ DSK Options:\n\
 		// This is now implemented in utils.
 		generate_share_private_keys(n_sites,
 			text_params_path,
-			true, // Do key testing.
+			false, // Don't key testing.
 			op_dir);
 		} // -generate_per_site_noisy_keys option.
 		else if (t_string::compare_strings(argv[1], "-generate_mult_diagonal_noise_matrix"))
