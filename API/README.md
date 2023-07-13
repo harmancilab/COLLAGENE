@@ -848,9 +848,20 @@ Test file I/O to shared directory.
 <li> [Data config file]: Configuration file for I/O operations, it should describe the type of file I/O used for sharing data files (i.e., *data_config.params*).</li>
 </ul
 
-*__Outputs:__* None.
+*__Outputs:__* None. Script returns 0 upon successful completion, this can be used for error checking in scripts:
+```
+./FILE_IO_UTILS.sh -test_file_IO data_config.params
 
-*__Remarks:__* This option uploads a random matrix, probes it, downloads, and compares the download for testing. Each site should run a test before protocols are executed to ensure that file I/O works correctly.
+if [[ $? != 0 ]]
+then
+	echo "Network I/O failed!"
+	exit 1
+fi
+
+...
+```
+
+*__Remarks:__* This option uploads a random file, probes it, downloads, and compares the download for testing. Each site should run a test before protocols are executed to ensure that file I/O works correctly.
 
 ***
 
@@ -886,7 +897,7 @@ Waits for a list of files/directories in shared directory.
 
 *__Outputs:__* None.
 
-*__Remarks:__* This option waits for a list of specific files or directories in the shared space before they can be downloaded and processed. It blocks until all files are ready to be downloaded. 
+*__Remarks:__* This option probes for a list of specific files or directories in the shared space before they can be downloaded and processed. It blocks until all files are ready to be downloaded. Non-zero return code indicates error (See error message).
 
 ***
 
@@ -904,7 +915,7 @@ Download a list of files/directories from the shared directory.
 
 *__Outputs:__* None.
 
-*__Remarks:__* This option downloads a list of specific files or directories from the shared space. The files that do not exist are skipped. To avoid this, the files should be waited on.
+*__Remarks:__* This option downloads a list of specific files or directories from the shared space. The files that do not exist are skipped. To avoid this, the files should be waited on. Non-zero return code indicates error (See error message).
 
 ***
 
@@ -922,4 +933,4 @@ Upload a list of files/directories to the shared directory.
 
 *__Outputs:__* None.
 
-*__Remarks:__* This option uploads a list of specific files or directories to the shared space. The operations are blocked until all uploads are completed.
+*__Remarks:__* This option uploads a list of specific files or directories to the shared space. The operations are blocked until all uploads are completed. Non-zero return code indicates error (See error message).
