@@ -116,7 +116,7 @@ This should start the docker container. You can install cmake and gcc-10 using f
 yum -y install cmake3
 yum -y install gcc10.x86_64
 yum -y install gcc10-c++
-yum -y bzip2
+yum -y install bzip2
 ```
 
 This version of cmake should install a version greater than 3.13 and can be used to install SEAL-4.0. 
