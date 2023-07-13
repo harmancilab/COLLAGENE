@@ -1,10 +1,7 @@
 #!/bin/bash 
 
-# This script implements the secure COLLAGENE pipeline; Runs all sites in sequential order in loops.
-# TODO::Use mktemp -d for downloading the metadata::mktemp -d --tmpdir=$PWD
+# This script implements the file transfer network I/O interface for COLLAGENE package.
 #
-
-COLLAGENE_SECURE_EXEC=COLLAGENE_Release
 
 if [[ $# -lt 2 ]]
 then
@@ -30,6 +27,7 @@ then
 	exit
 fi
 
+# Read the networking interface configurations.
 source ${data_config_file}
 
 # Check to make sure the temp IO directory exists.
@@ -43,14 +41,6 @@ then
 		echo "Could not create ${FILE_IO_TEMP_DIR}, exiting.."
 		exit
 	fi
-fi
-
-# Verify COLLAGENE executable.
-collagene_check=`type -P ${COLLAGENE_SECURE_EXEC}`
-if [[ "${collagene_check}" == "" ]]
-then
-	echo "Could not find COLLAGENE executable."
-	exit 1
 fi
 
 if [[ ${cmd_option} == "-get_date_time_str" ]]
@@ -101,17 +91,9 @@ then
 
 	data_config_file=$2
 
-	# Verify COLLAGENE executable.
-	collagene_check=`type -P ${COLLAGENE_SECURE_EXEC}`
-	if [[ "${collagene_check}" == "" ]]
-	then
-		echo "Could not find COLLAGENE executable."
-		exit 1
-	fi
-
 	# Upload/download a test file.
 	test_file=random_matrix_${RANDOM}.bin
-	${COLLAGENE_SECURE_EXEC} -generate_mult_full_noise_matrix 10 10 ${test_file}
+	tr -dc A-Za-z0-9 < /dev/urandom | head -c 100 > ${test_file}
 
 	# Check key permissions if SCP is used.
 	if [[ ${IO_TYPE} == "SCP" ]]
@@ -195,8 +177,10 @@ then
 		exit $last_ret
 	fi
 
+	echo "###################################"
 	echo "Difference between original and downloaded files: (Should be empty)"
 	diff temp_test_dir/${test_file} ${test_file}
+	echo "###################################"
 
 	echo "Everything looks good.."
 
