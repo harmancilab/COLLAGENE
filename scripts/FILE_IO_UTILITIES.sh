@@ -15,7 +15,7 @@ then
 		-download_files_from_shared [Data config file] [File/Directory list]
 		-upload_files_to_shared [Data config file] [File/Directory list]"
 
-	exit
+	exit 1
 fi
 
 cmd_option=$1
@@ -24,7 +24,7 @@ data_config_file=$2
 if [[ ! -f ${data_config_file} ]]
 then
 	echo "Could not find data config file @ \"${data_config_file}\""
-	exit
+	exit 1
 fi
 
 # Read the networking interface configurations.
@@ -32,15 +32,18 @@ source ${data_config_file}
 
 # Check to make sure the temp IO directory exists.
 if [[ ! -d ${FILE_IO_TEMP_DIR} ]]
-then
-	echo "Could not find ${FILE_IO_TEMP_DIR}, creating it.."
+then	
 	mkdir ${FILE_IO_TEMP_DIR}
 
 	if [[ ! -d ${FILE_IO_TEMP_DIR} ]]
 	then
 		echo "Could not create ${FILE_IO_TEMP_DIR}, exiting.."
-		exit
+		exit 1
 	fi
+
+	# Write the initial creation time stamp.
+	date_time_str=`$0 -get_date_time_str ${data_config_file}`
+	echo "${date_time_str} Could not find ${FILE_IO_TEMP_DIR}, creating it.." >& ${FILE_IO_TEMP_DIR}/INIT.STAMP
 fi
 
 if [[ ${cmd_option} == "-get_date_time_str" ]]
@@ -192,7 +195,7 @@ then
     if [[ $# != 2 ]]
     then
         echo "USAGE: $0 $1 [Data config file]"
-        exit
+        exit 1
     fi
 
 	source ${data_config_file}
@@ -261,7 +264,7 @@ then
 		echo "Using S3 file I/O" >> /dev/null
 	else 
 		echo "Could not figure out the IO type: ${IO_TYPE}"
-		exit
+		exit 1
 	fi
 
 	# Get a new temp directory for this request.
@@ -341,7 +344,7 @@ then
 	if [[ ! -f ${FILE_DIR_LIST_FILE} ]]
 	then
 		echo "Could not find the list of files to probe @ \"${FILE_DIR_LIST_FILE}\""
-		exit
+		exit 1
 	fi # file list check.
 
 	cur_status=1
@@ -385,7 +388,7 @@ then
 		echo "Using S3 file I/O" >> /dev/null
 	else
 		echo "Could not figure out the IO type: ${IO_TYPE}"
-		exit
+		exit 1
 	fi
 
 	# Get a new temp directory for this request.
@@ -536,7 +539,7 @@ then
 		echo "Using S3 file I/O" >> /dev/null
 	else
 		echo "Could not figure out the IO type: ${IO_TYPE}"
-		exit
+		exit 1
 	fi
 
 	# Get a new temp directory for this request.
