@@ -57,7 +57,7 @@ To run the K-means testing, run following:
 ./RUN_KMEANS_PROTOCOL.sh
 ```
 
-This script is the calls each step in order to generates data, do analysis, and plot the results.
+This script calls each step in order to generates data, do analysis, and plot the results.
 
 There are two other scripts that it uses:
 <ul>
