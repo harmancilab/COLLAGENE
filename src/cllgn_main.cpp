@@ -2036,6 +2036,40 @@ DSK Options:\n\
 				private_working_dir,
 				shared_working_dir);
 		} // -cryptable_client_calculate_save_pvalue_stats option.
+		else if (t_string::compare_strings(argv[1], "-cryptable_client_calculate_save_pvalue_stats_mean_centered_genotypes"))
+		{
+			if (argc != 13)
+			{
+				fprintf(stderr, "%s %s [client id (0,1...)] [# clients] [Iter. Number] [Var block size] [GMMAT text genotype file] \
+[Features matrix (row per subject)] \
+[Observed phenotypes file] \
+[Variant AF BED file path] \
+[Genotype scaler] \
+[Private working directory] \
+[Shared working directory]\n", argv[0], argv[1]);
+				exit(0);
+			}
+
+			int client_i = atoi(argv[2]);
+			int n_clients = atoi(argv[3]);
+			int i_iter = atoi(argv[4]);
+			int var_block_size = atoi(argv[5]);
+			char* GMMAT_text_genotype_matrix_fp = argv[6];
+			char* subject_per_row_feats_fp = argv[7];
+			char* subject_per_row_obs_pheno_fp = argv[8];
+			char* var_AFs_fp = argv[9];
+			double geno_scaler = atof(argv[10]);
+			char* private_working_dir = argv[11];
+			char* shared_working_dir = argv[12];
+
+			cryptable_client_calculate_save_pvalue_stats_mean_centered_genotypes(client_i, n_clients, i_iter, var_block_size, GMMAT_text_genotype_matrix_fp,
+				subject_per_row_feats_fp,
+				subject_per_row_obs_pheno_fp,
+				var_AFs_fp,
+				geno_scaler,
+				private_working_dir,
+				shared_working_dir);
+		} // -cryptable_client_calculate_save_pvalue_stats_mean_centered_genotypes option.
 		else if (t_string::compare_strings(argv[1], "-cryptable_client_pool_pvalue_stats"))
 		{
 			if (argc != 11)

@@ -89,6 +89,14 @@ void cryptable_client_pool_partially_decrypted_beta(int i_iter, int client_i, in
 // This function is skipped for now, the sites can just run 10 iterations and assume convergence.
 void cryptable_client_check_convergence_per_updated_beta(int i_iter, int client_i, int n_clients, char* shared_working_dir, double LL_EPSILON);
 
+void cryptable_client_calculate_save_pvalue_stats_mean_centered_genotypes(int client_i, int n_clients, int i_iter, int var_block_size, char* GMMAT_text_genotype_matrix_fp,
+	char* subject_per_row_feats_fp,
+	char* obs_pheno_fp,
+	char* var_AFs_fp,
+	double geno_scaler,
+	char* private_working_dir,
+	char* shared_working_dir);
+
 void cryptable_client_calculate_save_pvalue_stats(int client_i, int n_clients, int i_iter, int var_block_size, char* GMMAT_text_genotype_matrix_fp,
 	char* subject_per_row_feats_fp,
 	char* obs_pheno_fp,

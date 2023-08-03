@@ -1616,13 +1616,22 @@ then
 	
 	if [[ ! -f ${TEXT_PARAMS_PATH} ]]
 	then
-		echo "Could not find \"${TEXT_PARAMS_PATH}\""
-		exit
+		date_time_str=`${FILE_IO_UTILS_SCRIPT} -get_date_time_str $2`
+		echo "${date_time_str} @ $1: Sanity check failed; could not find \"${TEXT_PARAMS_PATH}\""
+		exit 1
 	fi
 
 	LOCAL_FEAT_FILE=${LOCAL_DATA_DIR}/feat_matrix.txt
 	LOCAL_PHENO_FILE=${LOCAL_DATA_DIR}/phenotypes.txt
 	LOCAL_GENO_FILE=${LOCAL_DATA_DIR}/genotypes.txt
+	VAR_AFS_BED_FILE=${LOCAL_DATA_DIR}/var_AFs.bed
+	GENO_SCALER=0.95
+
+	if [[ ! -f ${VAR_AFS_BED_FILE} ]]
+	then
+		date_time_str=`${FILE_IO_UTILS_SCRIPT} -get_date_time_str $2`
+		echo "${date_time_str} @ $1: INFO::${VAR_AFS_BED_FILE} does not exist, will run without genotype centering."
+	fi
 
 	${COLLAGENE_SECURE_EXEC} -write_enc_matrix_dimensions ${INTERM_DATA_DIR}/padded_inv_XtWX_${site_i_per_cmd}_ITER_${cur_epoch}.bin.enc ${INTERM_DATA_DIR}/padded_dims.txt
 	n_padded_covars=`awk {'print $1'} ${INTERM_DATA_DIR}/padded_dims.txt`
@@ -1679,8 +1688,23 @@ then
 	date_time_str=`${FILE_IO_UTILS_SCRIPT} -get_date_time_str $2`
 	echo "${date_time_str} @ $1: Calculating p-value stats.."
 
-	# Run COLLAGENE to get p-value statistics.
-	${COLLAGENE_SECURE_EXEC} -cryptable_client_calculate_save_pvalue_stats ${site_i_per_cmd} ${N_SITES} ${N_EPOCHS} ${VAR_BLOCK_SIZE} ${LOCAL_GENO_FILE} ${LOCAL_FEAT_FILE} ${LOCAL_PHENO_FILE} ${INTERM_DATA_DIR} ${INTERM_DATA_DIR} >& ${INTERM_DATA_DIR}/P_VAL_STAT_CLIENT_${site_i_per_cmd}.op
+	# Run COLLAGENE to get p-value statistics.	
+	RUN_MEAN_CENTERED=0
+	if [[ -f "${VAR_AFS_BED_FILE}" ]]
+	then
+		if [[ ${GENO_SCALER} != "" ]]
+		then
+			RUN_MEAN_CENTERED=1
+		fi
+	fi
+
+	# Get the p-values using mean centered or normal genotypes.
+	if [[ ${RUN_MEAN_CENTERED} == 1 ]]
+	then
+		${COLLAGENE_SECURE_EXEC} -cryptable_client_calculate_save_pvalue_stats_mean_centered_genotypes ${site_i_per_cmd} ${N_SITES} ${N_EPOCHS} ${VAR_BLOCK_SIZE} ${LOCAL_GENO_FILE} ${LOCAL_FEAT_FILE} ${LOCAL_PHENO_FILE} ${VAR_AFS_BED_FILE} ${GENO_SCALER} ${INTERM_DATA_DIR} ${INTERM_DATA_DIR} >& ${INTERM_DATA_DIR}/P_VAL_STAT_CLIENT_${site_i_per_cmd}.op		
+	else
+		${COLLAGENE_SECURE_EXEC} -cryptable_client_calculate_save_pvalue_stats ${site_i_per_cmd} ${N_SITES} ${N_EPOCHS} ${VAR_BLOCK_SIZE} ${LOCAL_GENO_FILE} ${LOCAL_FEAT_FILE} ${LOCAL_PHENO_FILE} ${INTERM_DATA_DIR} ${INTERM_DATA_DIR} >& ${INTERM_DATA_DIR}/P_VAL_STAT_CLIENT_${site_i_per_cmd}.op		
+	fi
 
 	# Encrypt and send the p-value statistics.
 	date_time_str=`${FILE_IO_UTILS_SCRIPT} -get_date_time_str $2`

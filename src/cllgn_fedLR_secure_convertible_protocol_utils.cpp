@@ -1157,6 +1157,285 @@ void cryptable_client_check_convergence_per_updated_beta(int i_iter, int client_
 } // check convergence.
 
 // This function computes GtWG (vx1) and GtWX (vxp)
+void cryptable_client_calculate_save_pvalue_stats_mean_centered_genotypes(int client_i, int n_clients, int i_iter, int var_block_size, char* GMMAT_text_genotype_matrix_fp,
+	char* subject_per_row_feats_fp,
+	char* obs_pheno_fp,
+	char* var_AFs_fp,
+	double geno_scaler,
+	char* private_working_dir,
+	char* shared_working_dir)
+{
+	fprintf(stderr, "Client %d: Calculating p-value stats with mean centering with AFs in %s and scaling with %.4f..\n", client_i, var_AFs_fp, geno_scaler);
+
+	fprintf(stderr, "Loading the features data from %s.\n", subject_per_row_feats_fp);
+	int n_covars_per_feats_file = 0;
+	vector<double*>* per_subject_feat_matrix = new vector<double*>();
+	vector<double>* per_subject_obs_pheno = new vector<double>();
+	load_LR_data_row_samples(subject_per_row_feats_fp, obs_pheno_fp, n_covars_per_feats_file, per_subject_feat_matrix, per_subject_obs_pheno);
+
+	int n_feats = GET_N_FEATS_PER_N_COVARS(n_covars_per_feats_file);
+	fprintf(stderr, "%d features loaded from covariates file.\n", n_feats);
+
+	int sample_size = (int)(per_subject_obs_pheno->size());
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	double** X = get_matrix_per_row_vector_list(per_subject_feat_matrix, n_feats, NULL);
+	double** nu = allocate_matrix(sample_size, 1);
+	double** Y0 = allocate_matrix(sample_size, 1);
+
+	char beta_matrix_fp[1000];
+	//get_beta_matrix_fp(shared_working_dir, i_iter, client_i, beta_matrix_fp);
+	get_fulldec_beta_fp(shared_working_dir, i_iter, client_i, beta_matrix_fp);
+	int loaded_nrow, loaded_ncol;
+	double** cur_epoch_weights = load_matrix_binary(beta_matrix_fp, loaded_nrow, loaded_ncol);
+	if (loaded_nrow != n_feats || loaded_ncol != 1)
+	{
+		fprintf(stderr, "Sanity check failed while loading %s: %d, %d ; %d, %d\n", beta_matrix_fp, loaded_nrow, loaded_ncol, n_feats, 1);
+		exit(0);
+	}
+
+	fprintf(stderr, "Loaded beta values:\n");
+	for (int i_row = 0; i_row < n_feats; i_row++)
+	{
+		fprintf(stderr, "%.10f\n", cur_epoch_weights[i_row][0]);
+	} // i_row loop.
+
+	// Calculate nu and null phenotype matrix.
+	matrix_multiply(X, sample_size, n_feats, cur_epoch_weights, n_feats, 1, nu);
+
+	// Calculate mu from nu
+	process_matrix_elementwise_by_callback(nu, sample_size, 1, get_sigmoid_val_per_feat_comb, Y0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	if (per_subject_feat_matrix->size() != per_subject_obs_pheno->size())
+	{
+		fprintf(stderr, "The sample size does not match between null phenotypes and feature matrix: %d, %d\n", (int)per_subject_obs_pheno->size(), (int)per_subject_feat_matrix->size());
+		exit(0);
+	}
+
+	for (int i_s = 0; i_s < 10; i_s++)
+	{
+		fprintf(stderr, "Subject %d: %.4f\t%.4f\t%.4f\n", i_s, Y0[i_s][0] - per_subject_obs_pheno->at(i_s),
+			Y0[i_s][0],
+			per_subject_obs_pheno->at(i_s));
+	} // i_s loop.
+
+	save_matrix_plain(Y0, sample_size, 1, "Y0_vector.list");
+
+	// Compute the projection matrix: 
+	fprintf(stderr, "Setting Sigma inv..\n");
+	double* W_vec = new double[sample_size];
+	for (int i_s = 0; i_s < sample_size; i_s++)
+	{
+		W_vec[i_s] = Y0[i_s][0] * (1 - Y0[i_s][0]);
+	} // i_s loop.
+
+	// Get the sigma inverse matrix; this is basically W matrix of size N by N. It is in fact a vector.
+	double** W = get_diag_matrix(W_vec, sample_size, NULL);
+
+	double** Xt = transpose_matrix(X, sample_size, n_feats, NULL);
+	double** XtW = matrix_multiply(Xt, n_feats, sample_size, W, sample_size, sample_size, NULL);
+
+	// This will be needed to compute the G'WX matrices.
+	double** WX = transpose_matrix(XtW, n_feats, sample_size, NULL);
+
+	// This is the matrix that we will compute and store for the scale parameter pooling.
+	double** GtWX = allocate_matrix(var_block_size, n_feats);
+
+	int n_processed_vars = 0;
+	double** G = allocate_matrix(sample_size, var_block_size);
+	double** Gt = allocate_matrix(var_block_size, sample_size);
+
+	// Obs and Null Pheno; these are needed to save the chisqr stat.
+	double** Y = get_matrix_per_col_vector(per_subject_obs_pheno, NULL);
+
+	//////////////
+	save_matrix_plain(X, sample_size, n_feats, "X.txt");
+	save_matrix_plain(Y, sample_size, 1, "Y.list");
+	save_matrix_plain(Y0, sample_size, 1, "Y0.list");
+	//////////////
+
+	double** Y_min_Y0 = matrix_subtract(Y, sample_size, 1, Y0, sample_size, 1, NULL);
+
+	// These are needed for chisqr stat in the pooling stage.
+	double** Gt_Y_min_Y0 = allocate_matrix(var_block_size, 1);
+
+	// These are needed for the first part of the P matrix in pooling.
+	double** GtW = allocate_matrix(var_block_size, sample_size);
+	double** GtWG = allocate_matrix(var_block_size, 1);
+
+	fprintf(stderr, "Processing genotypes by %d-variant blocks..\n", var_block_size);
+	FILE* f_geno = open_f(GMMAT_text_genotype_matrix_fp, "r");
+	int cur_var_i = 0;
+	bool file_ended = false;
+
+	FILE* f_var_AFs = NULL;
+	if (check_file(var_AFs_fp))
+	{
+		f_var_AFs = open_f(var_AFs_fp, "r");
+	}
+	else
+	{
+		fprintf(stderr, "INFO::Could not find variant allele frequencies file @ %s, will not do genotype centering.\n", var_AFs_fp);
+	}
+
+	while (!file_ended)
+	{
+		// read and load the next block.
+		int cur_block_loaded_n_vars = 0;
+		int var_block_start_i = cur_var_i;
+		vector<char*>* cur_block_var_ids = new vector<char*>();
+		for (int i_var = cur_var_i;
+			i_var < cur_var_i + var_block_size;
+			i_var++)
+		{
+			char* cur_line = getline(f_geno);
+			if (cur_line == NULL)
+			{
+				file_ended = true;
+				break;
+			}
+
+			// Read the variant allele frequency if the file exists.
+			// If the file is not read for some reason, set the AF to 0?
+			double cur_var_AF = 0;
+			if (f_var_AFs != NULL)
+			{
+				char* cur_AF_line = getline(f_var_AFs);
+				if (cur_AF_line == NULL)
+				{
+					fprintf(stderr, "Sanity check failed: Could not read the AF..\n");
+					exit(1);
+				}
+
+				// XX      0       0       rs11591988      0.1075  +
+				char var_id[1000];
+				if (sscanf(cur_AF_line, "%*s %*s %*s %s %lf", var_id, &cur_var_AF) != 2)
+				{
+					fprintf(stderr, "Sanity check failed: Could not parse the AF: %s\n", cur_AF_line);
+					exit(1);
+					//cur_var_AF = 0;
+				}
+
+				// Following is used for making sure that the AF file is read correctly.
+				if (__DUMP_CRYPTABLE_FEDLR_MESSAGES__)
+				{
+					if (i_var % 1000 == 0)
+					{
+						fprintf(stderr, "%s AF: %.4f\n", var_id, cur_var_AF);
+					}
+				}
+			} // variant AF file check.
+
+			n_processed_vars++;
+			if (n_processed_vars % 100 == 0)
+			{
+				fprintf(stderr, "@ %d. variant.           \r", n_processed_vars);
+			}
+
+			char buff[100];
+			int i_cur_char = 0;
+			t_string::get_next_token(cur_line, buff, 100, "\t", i_cur_char);
+			char* var_id = t_string::copy_me_str(buff);
+			cur_block_var_ids->push_back(var_id);
+			t_string::get_next_token(cur_line, buff, 100, "\t", i_cur_char);
+			//char* ref_all = t_string::copy_me_str(buff);
+			t_string::get_next_token(cur_line, buff, 100, "\t", i_cur_char);
+			//char* alt_all = t_string::copy_me_str(buff);
+
+			for (int i_s = 0; i_s < sample_size; i_s++)
+			{
+				t_string::get_next_token(cur_line, buff, 100, "\t", i_cur_char);
+				double cur_geno = atof(buff);
+				if (cur_geno != 0 &&
+					cur_geno != 1 &&
+					cur_geno != 2)
+				{
+					fprintf(stderr, "Found invalid geno: %.0f for %s\n", cur_geno, var_id);
+					exit(0);
+				}
+
+				// Assign mean centered then scaled genotype.
+				G[i_s][cur_block_loaded_n_vars] = geno_scaler * (cur_geno - (2 * cur_var_AF));
+				Gt[cur_block_loaded_n_vars][i_s] = geno_scaler * (cur_geno - (2 * cur_var_AF));
+			} // i_t loop.
+
+			// Update the # of loaded vars here.
+			cur_block_loaded_n_vars++;
+			delete[] cur_line;
+		} // block loading option.
+
+		fprintf(stderr, "Processed %d variants.\n", cur_block_loaded_n_vars);
+
+		// Make sure that we have block size many variants processed.
+		if (cur_block_loaded_n_vars != var_block_size)
+		{
+			break;
+		}
+
+		int var_block_end_i = cur_var_i + cur_block_loaded_n_vars - 1;
+		cur_var_i += cur_block_loaded_n_vars;
+
+		//// Calculate allele frequencies.
+		//matrix_multiply(Gt, var_block_size, sample_size, ones_matrix, sample_size, sample_size, per_var_AC_matrix);
+		//double dbl_twice_sample_size = 1.0 / ((double)sample_size);
+		//matrix_multiply_by_scalar(per_var_AC_matrix, var_block_size, sample_size, dbl_twice_sample_size, per_var_AF_matrix);
+		//transpose_matrix(per_var_AF_matrix, var_block_size, sample_size, per_subj_AF_matrix);
+
+		//// Note that this replaces G and Gt, be careful with updates.
+		//set_matrix_val(per_subj_AF_matrix, sample_size, var_block_size, 1.0);
+		//matrix_subtract(G, sample_size, var_block_size, per_subj_AF_matrix, sample_size, var_block_size, G);
+		//set_matrix_val(per_var_AF_matrix, var_block_size, sample_size, 1.0);
+		//matrix_subtract(Gt, var_block_size, sample_size, per_var_AF_matrix, var_block_size, sample_size, Gt);
+
+		//save_matrix_plain(per_var_AF_matrix, var_block_size, sample_size, "per_var_AF_matrix.txt");
+
+		fprintf(stderr, "Saving Block[%d-%d]\n", var_block_start_i, var_block_end_i);
+
+		// Compute chisqr stat for the current block of variants.
+		matrix_multiply(Gt, var_block_size, sample_size, Y_min_Y0, sample_size, 1, Gt_Y_min_Y0);
+
+		// Save the absolute chi-square stats matrix.
+		char cur_block_Gt_Ymin_Y0_fp[1000];
+		char var_block_ids_fp[1000];
+		get_chisq_stat_matrix_fp(shared_working_dir, var_block_start_i, var_block_end_i, client_i, cur_block_Gt_Ymin_Y0_fp, var_block_ids_fp);
+		save_matrix_binary(Gt_Y_min_Y0, var_block_size, 1, cur_block_Gt_Ymin_Y0_fp);
+
+		// Write the variant identifiers.
+		FILE* f_var_block_ids = open_f(var_block_ids_fp, "w");
+		for (int i_var = 0; i_var < (int)cur_block_var_ids->size(); i_var++)
+		{
+			fprintf(f_var_block_ids, "%s\n", cur_block_var_ids->at(i_var));
+		} // i_var loop.
+		close_f(f_var_block_ids, var_block_ids_fp);
+
+		// Save plaintext for debugging.
+		char cur_block_Gt_Ymin_Y0_fp_txt_fp[1000];
+		sprintf(cur_block_Gt_Ymin_Y0_fp_txt_fp, "chisq_stat_site_%d.txt", client_i);
+		save_matrix_plain(Gt_Y_min_Y0, var_block_size, 1, cur_block_Gt_Ymin_Y0_fp_txt_fp);
+
+		// Compute GtWX matrix.
+		matrix_multiply(Gt, var_block_size, sample_size, WX, sample_size, n_feats, GtWX);
+
+		// Save the GtWX.
+		char cur_block_GtWX_fp[1000];
+		get_GtWX_matrix_fp(shared_working_dir, var_block_start_i, var_block_end_i, client_i, cur_block_GtWX_fp);
+		save_matrix_binary(GtWX, var_block_size, n_feats, cur_block_GtWX_fp);
+
+		// We also need G'WG term: This is computed using more optimal multiplications using diagonal structure of W.
+		// This is not done in encrypted domain, it is done at each site locally.
+		matrix_right_multiply_with_diag_matrix(Gt, var_block_size, sample_size, W, sample_size, sample_size, GtW);
+		matrix_row_by_row_inner_product(GtW, var_block_size, sample_size, Gt, var_block_size, sample_size, GtWG);
+
+		// Save GtWG.
+		char cur_block_GtWG_fp[1000];
+		get_GtWG_matrix_fp(shared_working_dir, var_block_start_i, var_block_end_i, client_i, cur_block_GtWG_fp);
+		save_matrix_binary(GtWG, var_block_size, 1, cur_block_GtWG_fp);
+	} // genotype file reading loop.
+	close_f(f_geno, GMMAT_text_genotype_matrix_fp);
+} // client_calculate_save_pvalue_stats option.
+
+// This function computes GtWG (vx1) and GtWX (vxp)
 void cryptable_client_calculate_save_pvalue_stats(int client_i, int n_clients, int i_iter, int var_block_size, char* GMMAT_text_genotype_matrix_fp,
 	char* subject_per_row_feats_fp,
 	char* obs_pheno_fp, 
