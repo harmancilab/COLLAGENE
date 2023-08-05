@@ -1,7 +1,7 @@
 # COLLAGENE: Toolbase for Building Collaborative Biomedical Data Analysis Pipelines
 
 <p align="center">
-	<img align="right" width="100" height="100" src="img/logo_web.jpg" />
+	<img align="left" src="img/logo_web.jpg" />
 </p>
 
 This repository contains the release version of the COLLAGENE library that provides tools for building collaborative and federated biomedical data analysis with a focus on data security and individual-level data privacy.
