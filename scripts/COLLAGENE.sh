@@ -92,6 +92,10 @@ then
 	exit 1
 fi
 
+OPENSSL_VERSION=$(openssl version | awk '{print $2}')
+if [[ "$OPENSSL_VERSION" < "1.1.1" ]]; then
+    echo "Warning: OpenSSL version is older than 1.1.1; -pbkdf2 is not supported"
+fi
 
 if [[ "${cmd_option}" == "-validate_directory_exists" ]] 
 then
@@ -311,7 +315,8 @@ then
 		exit
 	fi
 
-	openssl rsautl -decrypt -inkey site_${i_site}.dsk_enc_secret_key -in ${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin.enc -out ${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin
+	#openssl rsautl -decrypt -inkey site_${i_site}.dsk_enc_secret_key -in ${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin.enc -out ${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin
+	openssl pkeyutl -decrypt -inkey site_${i_site}.dsk_enc_secret_key -in ${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin.enc -out ${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin -pkeyopt rsa_padding_mode:pkcs1
 	if [[ $? != 0 ]]
 	then
 		echo "Could not decrypt the hash for site ${i_site}"
@@ -326,7 +331,8 @@ then
 		exit
 	fi
 
-	openssl enc -d -aes-256-cbc -in ${RECEIVED_KEYS_DIR}/site_${i_site}.secret_key.enc -out ${RECEIVED_KEYS_DIR}/site_${i_site}.secret_key -pass file:./${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin
+	#openssl enc -d -aes-256-cbc -in ${RECEIVED_KEYS_DIR}/site_${i_site}.secret_key.enc -out ${RECEIVED_KEYS_DIR}/site_${i_site}.secret_key -pass file:./${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin
+	openssl enc -d -aes-256-cbc -pbkdf2 -in ${RECEIVED_KEYS_DIR}/site_${i_site}.secret_key.enc -out ${RECEIVED_KEYS_DIR}/site_${i_site}.secret_key -pass file:./${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin
 	if [[ $? != 0 ]]
 	then
 		echo "Could not decrypt the secret key for site ${i_site}"
@@ -341,8 +347,9 @@ then
 		exit
 	fi
 
-	openssl enc -d -aes-256-cbc -in ${RECEIVED_KEYS_DIR}/site_${i_site}_partdec_data_enc_hash.symmetric_key.enc -out ${RECEIVED_KEYS_DIR}/partdec_data_enc_hash.symmetric_key -pass file:./${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin
-	if [[ $? != 0 ]]
+	#openssl enc -d -aes-256-cbc -in ${RECEIVED_KEYS_DIR}/site_${i_site}_partdec_data_enc_hash.symmetric_key.enc -out ${RECEIVED_KEYS_DIR}/partdec_data_enc_hash.symmetric_key -pass file:./${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin
+	openssl enc -d -aes-256-cbc -pbkdf2 -in ${RECEIVED_KEYS_DIR}/site_${i_site}_partdec_data_enc_hash.symmetric_key.enc -out ${RECEIVED_KEYS_DIR}/partdec_data_enc_hash.symmetric_key -pass file:./${RECEIVED_KEYS_DIR}/site_${i_site}_dsk_rand_hash.bin
+	if [[ $? != 0 ]]	
 	then
 		echo "Could not decrypt the symmetric key."
 		exit 1

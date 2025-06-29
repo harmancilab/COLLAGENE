@@ -3,9 +3,11 @@
 # This is the generic data_config.params file that makes it easier to fix parameters. It contains different options in different applications.
 # You can use this file to setup task-specific parameters and share it with other sites to be consistent.
 
-# This command sets the executable binary path for COLLAGENE under bin/ directory. If it is in your PATH variable, it should be all set. 
-# Otherwise, you need to set the path to the executable file here.
-COLLAGENE_SECURE_EXEC=COLLAGENE_Release
+# This file must be used as an argument with every call to FILE_IO_UTILS.sh script. COLLAGENE.sh does not explicitly need this script.
+
+############################################################################################################################################
+
+# Task specific parameters...
 
 ############################################################################################################################################
 # Below sets up the options to upload/download/list the contents of the shared directory that is used to pass files among clients.
