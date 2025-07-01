@@ -54,7 +54,7 @@ ${LIB_DIR}/cllgn_seed_manager.o
 
 COLLAGENE_Release: ${objs}
 	@echo Linking executable $@
-	@${CC} -O3 ${lib_flags} -I ${SEAL_INCLUDE_DIR} -o ${exec_name} ${objs} ${SEAL_LIB_DIR}
+	@${CC} ${objs} ${SEAL_LIB_DIR} -O3 ${lib_flags} -I ${SEAL_INCLUDE_DIR} -o ${exec_name} 
 
 clean:
 	@echo Cleaning..
